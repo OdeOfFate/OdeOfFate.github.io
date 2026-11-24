@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OdeOfFate's Blog</title>
+  <meta name="description" content="OdeOfFate 的个人技术博客 - Computer Vision, Robotics & Edge Deployment" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Hiragino Sans GB"', '"Microsoft YaHei"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', '"Fira Code"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          },
+          colors: {
+            fluid: {
+              lightBg: '#f4f6f9',
+              lightCard: '#ffffff',
+              darkBg: '#181c27',
+              darkCard: '#252d38',
+              darkSub: '#1f2633',
+              accent: '#2f80ed',
+              accentDark: '#38bdf8',
+              navy: '#1e3a5f',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- 异步加载 Inter 字体（不阻塞离线或弱网渲染） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =====================================================================
+       Hexo Fluid 风格核心自定义样式 & 排版系统
+       ===================================================================== */
+    :root {
+      --board-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.08);
+      --nav-height: 64px;
+    }
+
+    html.dark {
+      --board-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.45), 0 8px 16px -6px rgba(0, 0, 0, 0.35);
+    }
+
+    body {
+      overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* 悬浮主卡片阴影 */
+    .fluid-board {
+      box-shadow: var(--board-shadow);
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    /* 顶部导航栏过渡 */
+    .navbar-transparent {
+      background: linear-gradient(180deg, rgba(11, 19, 32, 0.55) 0%, rgba(11, 19, 32, 0) 100%);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #f8fafc;
+    }
+
+    .navbar-scrolled {
+      background-color: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+      color: #1e293b;
+    }
+
+    html.dark .navbar-scrolled {
+      background-color: rgba(24, 28, 39, 0.92);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      color: #e2e8f0;
+    }
+
+    /* 打字机光标闪烁 */
+    @keyframes blinkCursor {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    .typing-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.15em;
+      background-color: #38bdf8;
+      margin-left: 4px;
+      vertical-align: -0.15em;
+      animation: blinkCursor 0.9s infinite;
+    }
+
+    /* 向下箭头微动效 */
+    @keyframes floatDown {
+      0%, 100% { transform: translateY(0); opacity: 0.75; }
+      50% { transform: translateY(8px); opacity: 1; }
+    }
+    .animate-float-down {
+      animation: floatDown 2s ease-in-out infinite;
+    }
+
+    /* 视图切换淡入 */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .view-enter {
+      animation: fadeSlideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* =====================================================================
+       Markdown 正文排版（类 GitHub / Fluid 工程阅读体验）
+       ===================================================================== */
+    .md-body {
+      font-size: 1rem;
+      line-height: 1.82;
+      color: #334155;
+      word-break: break-word;
+    }
+    html.dark .md-body {
+      color: #cbd5e1;
+    }
+
+    .md-body h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 2.25rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid #e2e8f0;
+      color: #0f172a;
+      scroll-margin-top: 84px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    html.dark .md-body h2 {
+      border-bottom-color: #334155;
+      color: #f1f5f9;
+    }
+    .md-body h2::before {
+      content: "#";
+      color: #3b82f6;
+      font-weight: 600;
+      font-size: 1.25rem;
+      opacity: 0.8;
+    }
+
+    .md-body h3 {
+      font-size: 1.22rem;
+      font-weight: 700;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+      color: #1e293b;
+      scroll-margin-top: 84px;
+    }
+    html.dark .md-body h3 {
+      color: #e2e8f0;
+    }
+
+    .md-body h4 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-top: 1.35rem;
+      margin-bottom: 0.5rem;
+      color: #334155;
+    }
+    html.dark .md-body h4 {
+      color: #cbd5e1;
+    }
+
+    .md-body p {
+      margin-bottom: 1.1rem;
+    }
+
+    .md-body a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    html.dark .md-body a {
+      color: #38bdf8;
+    }
+
+    .md-body ul, .md-body ol {
+      margin-bottom: 1.15rem;
+      padding-left: 1.5rem;
+    }
+    .md-body ul { list-style-type: disc; }
+    .md-body ol { list-style-type: decimal; }
+    .md-body li {
+      margin-bottom: 0.4rem;
+    }
+    .md-body li strong {
+      color: #0f172a;
+    }
+    html.dark .md-body li strong {
+      color: #f1f5f9;
+    }
+
+    .md-body blockquote {
+      margin: 1.25rem 0;
+      padding: 0.85rem 1.15rem;
+      border-left: 4px solid #3b82f6;
+      background-color: #f1f5f9;
+      border-radius: 0 0.5rem 0.5rem 0;
+      color: #475569;
+    }
+    html.dark .md-body blockquote {
+      background-color: rgba(30, 41, 59, 0.75);
+      border-left-color: #38bdf8;
+      color: #94a3b8;
+    }
+    .md-body blockquote p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 行内代码 */
+    .md-body code.inline-code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.87em;
+      padding: 0.16em 0.42em;
+      border-radius: 0.35rem;
+      background-color: #eef2f7;
+      color: #c2410c;
+      border: 1px solid #e2e8f0;
+    }
+    html.dark .md-body code.inline-code {
+      background-color: #1e293b;
+      color: #fb923c;
+      border-color: #334155;
+    }
+
+    /* 数学公式块 */
+    .md-math-block {
+      margin: 1.35rem 0;
+      padding: 1rem 1.25rem;
+      border-radius: 0.65rem;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.07), rgba(14, 165, 233, 0.04));
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      font-family: "JetBrains Mono", "Cambria Math", Georgia, serif;
+      font-size: 0.95rem;
+      color: #0f172a;
+      overflow-x: auto;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    html.dark .md-math-block {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(59, 130, 246, 0.05));
+      border-color: rgba(56, 189, 248, 0.25);
+      color: #e0f2fe;
+    }
+
+    /* 代码块容器 */
+    .code-wrapper {
+      margin: 1.35rem 0;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background-color: #0f172a;
+      border: 1px solid #1e293b;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.9rem;
+      background-color: #1e293b;
+      border-bottom: 1px solid #334155;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+    .code-pre {
+      margin: 0;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #e2e8f0;
+    }
+    /* 语法高亮 Token 颜色（One Dark / Tokyo Night 风格） */
+    .tok-comment { color: #64748b; font-style: italic; }
+    .tok-string  { color: #86efac; }
+    .tok-keyword { color: #c084fc; font-weight: 500; }
+    .tok-type    { color: #38bdf8; }
+    .tok-number  { color: #fb923c; }
+    .tok-macro   { color: #f472b6; }
+
+    /* Markdown 表格 */
+    .md-table-wrap {
+      margin: 1.35rem 0;
+      overflow-x: auto;
+      border-radius: 0.65rem;
+      border: 1px solid #e2e8f0;
+    }
+    html.dark .md-table-wrap {
+      border-color: #334155;
+    }
+    .md-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    .md-body thead {
+      background-color: #f8fafc;
+    }
+    html.dark .md-body thead {
+      background-color: #1e293b;
+    }
+    .md-body th {
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: #0f172a;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    html.dark .md-body th {
+      color: #f1f5f9;
+      border-bottom-color: #334155;
+    }
+    .md-body td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    html.dark .md-body td {
+      border-bottom-color: #2d3748;
+    }
+    .md-body tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .md-body tbody tr:hover {
+      background-color: rgba(59, 130, 246, 0.04);
+    }
+
+    /* TOC 激活态 */
+    .toc-link {
+      display: block;
+      padding: 0.32rem 0.65rem;
+      border-left: 2px solid transparent;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      color: #64748b;
+      transition: all 0.18s ease;
+      border-radius: 0 0.35rem 0.35rem 0;
+    }
+    html.dark .toc-link {
+      color: #94a3b8;
+    }
+    .toc-link:hover {
+      color: #2563eb;
+      background-color: rgba(37, 99, 235, 0.06);
+    }
+    html.dark .toc-link:hover {
+      color: #38bdf8;
+      background-color: rgba(56, 189, 248, 0.08);
+    }
+    .toc-link.active {
+      color: #2563eb;
+      border-left-color: #2563eb;
+      background-color: rgba(37, 99, 235, 0.08);
+      font-weight: 600;
+    }
+    html.dark .toc-link.active {
+      color: #38bdf8;
+      border-left-color: #38bdf8;
+      background-color: rgba(56, 189, 248, 0.12);
+    }
+
+    /* 自定义细滚动条 */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.65); }
+  </style>
+</head>
+
+<body class="bg-fluid-lightBg dark:bg-fluid-darkBg text-slate-800 dark:text-slate-200 font-sans antialiased selection:bg-blue-500/20 selection:text-blue-600 dark:selection:text-sky-300">
+
+  <!-- =====================================================================
+       1. 顶部固定导航栏 (Sticky Navbar)
+       ===================================================================== -->
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 transition-all duration-300 navbar-transparent">
+    <div class="max-w-6xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between">
+      <!-- 左侧 Logo 与站点名称 -->
+      <a href="#home" class="flex items-center gap-2.5 group focus:outline-none">
+        <span class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+          <!-- 极简科技棱镜 Logo -->
+          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+            <line x1="12" y1="22" x2="12" y2="15.5"></line>
+            <polyline points="22 8.5 12 15.5 2 8.5"></polyline>
+            <polyline points="2 15.5 12 8.5 22 15.5"></polyline>
+          </svg>
+        </span>
+        <span id="nav-brand-title" class="font-bold text-base sm:text-lg tracking-tight">OdeOfFate's Blog</span>
+      </a>
+
+      <!-- 右侧桌面导航 + 工具栏 -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <nav class="hidden md:flex items-center gap-1 mr-2" aria-label="主导航">
+          <a href="#home" data-nav="home" class="nav-link px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/15 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            首页
+          </a>
+          <a href="#archives" data-nav="archives" class="nav-link px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/15 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            归档
+          </a>
+          <a href="#categories" data-nav="categories" class="nav-link px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/15 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            分类
+          </a>
+          <a href="#tags" data-nav="tags" class="nav-link px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/15 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            标签
+          </a>
+          <a href="#about" data-nav="about" class="nav-link px-3 py-2 rounded-lg text-sm font-medium hover:bg-white/15 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            关于
+          </a>
+        </nav>
+
+        <!-- 搜索按钮 (Ctrl+K) -->
+        <button id="btn-open-search" type="button" title="站内搜索 (Ctrl + K)" aria-label="站内搜索"
+          class="p-2.5 sm:px-3 sm:py-1.5 rounded-lg hover:bg-white/15 dark:hover:bg-white/10 transition-colors flex items-center gap-2 text-sm">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[11px] font-mono rounded border border-current/25 opacity-75">Ctrl K</span>
+        </button>
+
+        <!-- 在线写文章/生成器按钮 -->
+        <button id="btn-open-editor" type="button" title="Markdown 写文章与配置生成器" aria-label="写文章工具"
+          class="p-2.5 rounded-lg hover:bg-white/15 dark:hover:bg-white/10 transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
+
+        <!-- 亮色/暗色主题切换 -->
+        <button id="btn-toggle-theme" type="button" title="切换亮色/暗色主题" aria-label="切换主题"
+          class="p-2.5 rounded-lg hover:bg-white/15 dark:hover:bg-white/10 transition-colors">
+          <!-- 太阳图标（暗色模式显示） -->
+          <svg id="icon-sun" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <!-- 月亮图标（亮色模式显示） -->
+          <svg id="icon-moon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <!-- 移动端汉堡按钮 -->
+        <button id="btn-mobile-menu" type="button" aria-label="打开菜单"
+          class="md:hidden p-2.5 rounded-lg hover:bg-white/15 dark:hover:bg-white/10 transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 移动端抽屉导航 -->
+  <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+    <div id="mobile-drawer-backdrop" class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"></div>
+    <aside class="absolute right-0 top-0 bottom-0 w-72 max-w-[82vw] bg-white dark:bg-fluid-darkCard shadow-2xl p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between pb-5 border-b border-slate-200 dark:border-slate-700">
+          <span class="font-bold text-lg text-slate-900 dark:text-white">导航菜单</span>
+          <button id="btn-close-mobile" type="button" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <nav class="mt-5 flex flex-col gap-1.5">
+          <a href="#home" class="mobile-nav-item px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/70 transition-colors">首页 Home</a>
+          <a href="#archives" class="mobile-nav-item px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/70 transition-colors">归档 Archives</a>
+          <a href="#categories" class="mobile-nav-item px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/70 transition-colors">分类 Categories</a>
+          <a href="#tags" class="mobile-nav-item px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/70 transition-colors">标签 Tags</a>
+          <a href="#about" class="mobile-nav-item px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700/70 transition-colors">关于 About</a>
+        </nav>
+      </div>
+      <div class="pt-5 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-2.5">
+        <button id="btn-mobile-editor" type="button" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors">
+          Markdown 写文章工具
+        </button>
+        <a href="https://github.com/OdeOfFate" target="_blank" rel="noopener noreferrer"
+          class="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-600 text-center text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors">
+          访问 GitHub 主页
+        </a>
+      </div>
+    </aside>
+  </div>
+
+  <!-- =====================================================================
+       2. 首屏全宽 Hero Banner (Canvas 科技粒子网格 + 动态内容)
+       ===================================================================== -->
+  <section id="hero-banner" class="relative w-full min-h-[480px] h-[72vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300">
+    <!-- 科技感粒子连线与透视网格 Canvas -->
+    <canvas id="hero-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+
+    <!-- 柔和径向光晕与底部遮罩 -->
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.12)_0%,rgba(8,17,31,0.55)_75%)] pointer-events-none"></div>
+    <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/35 to-transparent pointer-events-none"></div>
+
+    <!-- Hero 动态文字区（随路由在首页/文章页/子页之间切换） -->
+    <div id="hero-content" class="relative z-10 max-w-4xl mx-auto px-5 text-center text-white pt-10">
+      <!-- 由 JS 动态渲染 -->
+    </div>
+
+    <!-- 首页平滑向下滚动箭头 -->
+    <button id="hero-scroll-btn" type="button" aria-label="向下浏览内容"
+      class="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-10 p-3 text-white/75 hover:text-white transition-colors animate-float-down">
+      <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+  </section>
+
+  <!-- =====================================================================
+       3. 主内容悬浮卡片容器 (Hexo Fluid Board)
+       ===================================================================== -->
+  <main id="main-anchor" class="relative z-20 -mt-14 sm:-mt-16 pb-16 px-3 sm:px-6">
+    <div id="main-container" class="max-w-5xl mx-auto transition-all duration-300">
+      <div id="fluid-board" class="fluid-board bg-fluid-lightCard dark:bg-fluid-darkCard rounded-2xl border border-slate-200/70 dark:border-slate-700/60 px-5 py-8 sm:px-10 sm:py-11">
+        <!-- 主视图动态注入区域 -->
+        <div id="app-view"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- =====================================================================
+       4. 页脚 (Footer)
+       ===================================================================== -->
+  <footer class="pb-12 pt-2 px-4 text-center text-sm text-slate-500 dark:text-slate-400">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-2.5">
+      <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+        <a href="https://github.com/OdeOfFate" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-sky-400 transition-colors font-medium">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub @OdeOfFate
+        </a>
+        <span class="opacity-35">|</span>
+        <button id="btn-footer-editor" type="button" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">
+          在线撰写新文章
+        </button>
+        <span class="opacity-35">|</span>
+        <a href="#post/github-pages-maintenance-guide" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">
+          博客部署与自定义指南
+        </a>
+      </div>
+      <p class="text-xs opacity-75">
+        &copy; <span id="footer-year">2026</span> OdeOfFate · Powered by GitHub Pages · Inspired by Fluid Engineering Style
+      </p>
+    </div>
+  </footer>
+
+  <!-- 返回顶部悬浮按钮 -->
+  <button id="btn-back-top" type="button" aria-label="返回顶部"
+    class="fixed right-5 bottom-6 z-30 w-11 h-11 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center opacity-0 pointer-events-none translate-y-3 transition-all duration-300 hover:text-blue-600 dark:hover:text-sky-400 hover:-translate-y-0.5">
+    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- =====================================================================
+       5. 站内搜索弹窗 (Ctrl/Cmd + K)
+       ===================================================================== -->
+  <div id="search-modal" class="fixed inset-0 z-50 hidden flex items-start justify-center pt-[10vh] px-4">
+    <div id="search-backdrop" class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"></div>
+    <div class="relative z-10 w-full max-w-2xl bg-white dark:bg-fluid-darkCard rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div class="flex items-center px-4 py-3.5 border-b border-slate-200 dark:border-slate-700 gap-3">
+        <svg class="w-5 h-5 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search-input" type="text" autocomplete="off" placeholder="搜索文章标题、关键词、代码或标签..."
+          class="w-full bg-transparent text-slate-900 dark:text-white placeholder-slate-400 text-base focus:outline-none" />
+        <button id="btn-close-search" type="button" class="px-2 py-1 text-xs font-mono rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600">ESC</button>
+      </div>
+      <div id="search-results" class="max-h-[58vh] overflow-y-auto p-3 divide-y divide-slate-100 dark:divide-slate-700/60">
+        <!-- 动态渲染搜索结果 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       6. 在线 Markdown 编辑器 & POSTS 代码生成器弹窗
+       ===================================================================== -->
+  <div id="editor-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-6">
+    <div id="editor-backdrop" class="absolute inset-0 bg-slate-950/65 backdrop-blur-sm"></div>
+    <div class="relative z-10 w-full max-w-6xl h-[90vh] bg-white dark:bg-fluid-darkCard rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden">
+      <!-- 顶栏 -->
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/60">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+          <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base">Markdown 文章编辑器 &amp; POSTS 配置生成器</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-copy-post-obj" type="button"
+            class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            复制 JS 对象代码
+          </button>
+          <button id="btn-close-editor" type="button" class="p-2 rounded-lg text-slate-500 hover:bg-slate-200/70 dark:hover:bg-slate-700">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 元数据输入栏 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 px-5 py-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-fluid-darkCard text-sm">
+        <input id="ed-title" type="text" placeholder="文章标题" value="新文章：视觉流水线调试记录"
+          class="lg:col-span-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <input id="ed-category" type="text" placeholder="分类（如：计算机视觉）" value="计算机视觉"
+          class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <input id="ed-tags" type="text" placeholder="标签（逗号分隔）" value="OpenCV, C++, 调试"
+          class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <select id="ed-cover"
+          class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="calibration">封面：相机标定几何</option>
+          <option value="tensorrt">封面：神经网络算力图</option>
+          <option value="pointcloud">封面：三维点云深度场</option>
+          <option value="terminal">封面：工程部署架构</option>
+        </select>
+        <input id="ed-summary" type="text" placeholder="2-3 行摘要（展示在首页卡片）" value="记录一次真实场景下的视觉算法定位与性能优化过程，附完整参数与代码。"
+          class="sm:col-span-2 lg:col-span-4 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <input id="ed-date" type="date" value="2026-11-24"
+          class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <!-- 移动端切换标签 -->
+      <div class="flex md:hidden border-b border-slate-200 dark:border-slate-700 text-sm font-medium">
+        <button id="tab-ed-write" type="button" class="flex-1 py-2.5 text-blue-600 border-b-2 border-blue-600">编辑 Markdown</button>
+        <button id="tab-ed-preview" type="button" class="flex-1 py-2.5 text-slate-500">实时预览</button>
+      </div>
+
+      <!-- 左右分栏：编辑区 + 实时预览 -->
+      <div class="flex-1 grid grid-cols-1 md:grid-cols-2 min-h-0">
+        <div id="pane-ed-write" class="flex flex-col h-full border-r border-slate-200 dark:border-slate-700">
+          <textarea id="ed-markdown" spellcheck="false"
+            class="flex-1 w-full p-4 sm:p-5 bg-slate-50 dark:bg-[#1a202c] text-slate-800 dark:text-slate-200 font-mono text-sm leading-relaxed resize-none focus:outline-none"></textarea>
+        </div>
+        <div id="pane-ed-preview" class="hidden md:block h-full overflow-y-auto p-5 sm:p-6 bg-white dark:bg-fluid-darkCard">
+          <div id="ed-preview-out" class="md-body"></div>
+        </div>
+      </div>
+
+      <!-- 底部提示 -->
+      <div class="px-5 py-2.5 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center justify-between gap-2">
+        <span>提示：点击右上角「复制 JS 对象代码」，然后直接粘贴到本文件源码的 <code class="font-mono text-blue-600 dark:text-sky-400">POSTS</code> 数组开头即可上线新文章。</span>
+        <span id="ed-word-count" class="font-mono">0 字</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全局 Toast 提示容器 -->
+  <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] pointer-events-none flex flex-col items-center gap-2"></div>
+
+  <!-- =====================================================================
+       核心脚本：清晰分离【站点配置】【文章数据】与【渲染引擎】
+       ===================================================================== -->
+  <script>
+    /* =======================================================================
+       一、站点基础配置（修改此处即可自定义你的网站信息、头像、简介与项目）
+       ======================================================================= */
+    const SITE_CONFIG = {
+      siteName: "OdeOfFate's Blog",
+      heroTitle: "OdeOfFate",
+      subtitles: [
+        "Computer Vision · Robotics · Edge Deployment",
+        "探索机器视觉、三维重建与嵌入式算法工程",
+        "Code is cheap, show me the reprojection error."
+      ],
+      author: {
+        name: "OdeOfFate",
+        role: "Robotics & Computer Vision Engineer",
+        github: "https://github.com/OdeOfFate",
+        siteUrl: "https://odeoffate.github.io",
+        location: "China",
+        bio: "专注于计算机视觉、机器人感知与边缘端高性能模型部署。热衷于从数学原理到 C++/CUDA 工程落地的完整闭环，记录在相机标定、位姿解算、TensorRT 加速与三维点云处理中的踩坑与实践笔记。",
+        skills: [
+          { name: "C++17/20", group: "Core" },
+          { name: "Python", group: "Core" },
+          { name: "OpenCV", group: "Vision" },
+          { name: "ROS 2", group: "Robotics" },
+          { name: "PyTorch", group: "AI" },
+          { name: "TensorRT", group: "Deploy" },
+          { name: "CUDA", group: "Deploy" },
+          { name: "PCL / Open3D", group: "3D" },
+          { name: "Linux / CMake", group: "System" },
+          { name: "Eigen3", group: "Math" }
+        ],
+        projects: [
+          {
+            name: "Monocular 6DoF PnP Vision Pipeline",
+            desc: "面向实时目标追踪的单目视觉感知框架，融合轻量化关键点检测、亚像素角点精修与多解 PnP 滤波器。",
+            tech: ["C++", "OpenCV", "Eigen", "PnP"],
+            url: "https://github.com/OdeOfFate"
+          },
+          {
+            name: "Edge TensorRT Inference Engine",
+            desc: "针对嵌入式计算平台封装的 TensorRT C++ 异步推理引擎，支持 FP16/INT8 量化与零拷贝前处理。",
+            tech: ["TensorRT", "CUDA", "ONNX", "C++"],
+            url: "https://github.com/OdeOfFate"
+          },
+          {
+            name: "RGB-D PointCloud Perception Toolkit",
+            desc: "基于深度相机的彩色-深度时空同步、外参标定与实时体素/统计点云滤波模块。",
+            tech: ["ROS 2", "RealSense", "PCL", "3D Vision"],
+            url: "https://github.com/OdeOfFate"
+          }
+        ]
+      }
+    };
+
+    /* =======================================================================
+       二、文章数据区 (POSTS)
+       新增文章只需在数组开头粘贴一段新对象（可使用右上角“写文章工具”一键生成）
+       说明：为了避免代码块符号冲突，这里用 FENCE 常量代表三个反引号
+       ======================================================================= */
+    const FENCE = String.fromCharCode(96).repeat(3);
+
+    const POSTS = [
+      {
+        slug: "vision-learning-1-calibration-pnp",
+        title: "视觉学习笔记（一）：单目相机标定与 PnP 6DoF 位姿解算实战",
+        date: "2026-11-18",
+        category: "计算机视觉",
+        tags: ["相机标定", "PnP", "OpenCV", "C++", "6DoF"],
+        cover: "calibration",
+        summary: "系统梳理单目针孔相机内参标定流程、镜头畸变模型与 Perspective-n-Point (PnP) 6DoF 位姿求解。附带 OpenCV C++ 工程代码、不同 PnP 算法精度对比及重投影误差排查清单。",
+        content: `
+## 1. 为什么内参标定决定 6DoF 位姿上限
+
+在机器视觉与机器人感知任务中，我们经常需要从一张二维图像反推出目标在相机坐标系下的三维位置与姿态（即 **6DoF 位姿**：3 个平移自由度 $t_x, t_y, t_z$ 与 3 个旋转自由度 $r_x, r_y, r_z$）。无论后端滤波算法多么精妙，如果相机内参矩阵 $K$ 与畸变系数 $D$ 存在系统误差，所有测距与姿态估计都会产生不可逆的偏移。
+
+针孔相机将三维空间点 $P_w = [X_w, Y_w, Z_w]^T$ 投影到像素平面 $p = [u, v]^T$ 的过程遵循如下几何变换：
+
+$$s \\begin{bmatrix} u \\\\ v \\\\ 1 \\end{bmatrix} = K \\begin{bmatrix} R & t \\end{bmatrix} \\begin{bmatrix} X_w \\\\ Y_w \\\\ Z_w \\\\ 1 \\end{bmatrix}, \\quad K = \\begin{bmatrix} f_x & 0 & c_x \\\\ 0 & f_y & c_y \\\\ 0 & 0 & 1 \\end{bmatrix}$$
+
+实际镜头存在径向畸变（$k_1, k_2, k_3$）与切向畸变（$p_1, p_2$），工程上一般使用 **5 参数畸变模型** 即可覆盖绝大多数工业定焦镜头。
+
+---
+
+## 2. 高精度标定板的拍摄规范
+
+使用棋盘格、ChArUco 或同心圆/回字标定板进行离线标定时，图片质量比数量更重要。建议采集 **25 ~ 40 张** 覆盖全面姿态的图像：
+
+- **覆盖图像边缘**：镜头畸变在图像四角最明显，必须让标定板贴近四个边角至少各出现 3~4 次。
+- **充足的倾斜角度**：绕 X/Y 轴倾斜 20° ~ 45°，防止焦距 $f_x, f_y$ 与标定板深度发生尺度耦合退化。
+- **避免运动模糊**：固定曝光时间，拍摄时确保标定板完全静止，尽量使用亚像素角点优化 \`cv::cornerSubPix\`。
+- **物理尺寸精确测量**：标定板方格边长误差 1%，最终 PnP 测距就会直接引入 1% 的比例误差。
+
+> **工程经验**：正常工业相机配 6mm~12mm 镜头，标定完成后的平均重投影误差（Reprojection Error）应控制在 **0.15 ~ 0.35 px** 之间；若超过 0.5 px，优先排查模糊帧或角点误检帧并剔除重算。
+
+---
+
+## 3. 常见 PnP 求解算法对比
+
+OpenCV 的 \`cv::solvePnP\` 提供了多种求解器。针对平面四点目标（如机器人装甲板、二维码、标定块）与一般立体多点目标，算法选型差异显著：
+
+| 算法枚举 | 最少点数 | 适用构型 | 速度 | 工程特点与推荐场景 |
+| :--- | :---: | :--- | :---: | :--- |
+| \`SOLVEPNP_ITERATIVE\` | 4 | 任意构型 | 中 | 基于 Levenberg-Marquardt 非线性优化，容易陷入平面目标的**二义性局部极小值** |
+| \`SOLVEPNP_P3P\` / \`AP3P\` | 4 | 任意 4 点 | 极快 | 仅用 3 点求闭式解、第 4 点消歧，对像素噪声较敏感 |
+| \`SOLVEPNP_EPNP\` | 4 | 非共面多点 | 快 | $O(n)$ 复杂度，适合点数较多（>6点）的 3D 模型 |
+| \`SOLVEPNP_IPPE\` | 4 | **严格共面** | 极快 | 专门针对平面目标，通过 \`solvePnPGeneric\` 可直接返回**两个对称候选解** |
+| \`SOLVEPNP_SQPNP\` | 3 | 任意构型 | 快 | 近年引入的全局最优求解器，对共面和非共面目标均具备极高稳定性 |
+
+> **关键结论**：当目标的 4 个特征点严格共面时，强烈建议使用 \`SOLVEPNP_IPPE\` 配合 \`cv::solvePnPGeneric\` 获取全部两个可能姿态，再结合重力方向（IMU 姿态）或上一帧历史轨迹挑选物理合理的真实解，彻底消除姿态“翻转跳变”。
+
+---
+
+## 4. OpenCV C++ 工程代码实战
+
+下面给出一个完整的 PnP 解算与重投影误差校验函数示例，使用 \`SOLVEPNP_IPPE\` 获取候选解并输出平移向量与欧拉角检查信息：
+
+${FENCE}cpp
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <vector>
+
+struct PoseResult {
+    cv::Mat rvec;
+    cv::Mat tvec;
+    double reproj_error_px = 0.0;
+    bool valid = false;
+};
+
+/**
+ * 计算单组位姿的平均像素重投影误差
+ */
+double computeReprojectionError(
+    const std::vector<cv::Point3f>& obj_pts,
+    const std::vector<cv::Point2f>& img_pts,
+    const cv::Mat& rvec,
+    const cv::Mat& tvec,
+    const cv::Mat& K,
+    const cv::Mat& dist)
+{
+    std::vector<cv::Point2f> projected;
+    cv::projectPoints(obj_pts, rvec, tvec, K, dist, projected);
+
+    double total_err = 0.0;
+    for (size_t i = 0; i < obj_pts.size(); ++i) {
+        total_err += cv::norm(img_pts[i] - projected[i]);
+    }
+    return total_err / static_cast<double>(obj_pts.size());
+}
+
+/**
+ * 面向平面四点目标的稳健 PnP 求解
+ */
+PoseResult solvePlanarTargetPnP(
+    const std::vector<cv::Point2f>& img_pts,
+    double target_width_m,
+    double target_height_m,
+    const cv::Mat& K,
+    const cv::Mat& dist)
+{
+    PoseResult res;
+    if (img_pts.size() != 4) return res;
+
+    // 按顺时针顺序定义目标坐标系（中心为原点，Z轴垂直平面）
+    const float hw = static_cast<float>(target_width_m * 0.5);
+    const float hh = static_cast<float>(target_height_m * 0.5);
+    std::vector<cv::Point3f> obj_pts = {
+        {-hw, -hh, 0.0f},  // 左上
+        { hw, -hh, 0.0f},  // 右上
+        { hw,  hh, 0.0f},  // 右下
+        {-hw,  hh, 0.0f}   // 左下
+    };
+
+    std::vector<cv::Mat> rvecs, tvecs;
+    std::vector<double> reproj_errs;
+
+    int solutions = cv::solvePnPGeneric(
+        obj_pts, img_pts, K, dist,
+        rvecs, tvecs, false,
+        cv::SOLVEPNP_IPPE,
+        cv::noArray(), cv::noArray(), reproj_errs
+    );
+
+    if (solutions <= 0) return res;
+
+    // 默认选取重投影误差更小的第一候选解（实际项目中可叠加 IMU 先验判别）
+    res.rvec = rvecs[0];
+    res.tvec = tvecs[0];
+    res.reproj_error_px = computeReprojectionError(obj_pts, img_pts, res.rvec, res.tvec, K, dist);
+    res.valid = (res.tvec.at<double>(2) > 0.05 && res.reproj_error_px < 3.5);
+    return res;
+}
+${FENCE}
+
+---
+
+## 5. 重投影误差异常排查清单
+
+当你发现测距发飘、或者角度在正负 30° 之间剧烈抖动时，可以按以下顺序快速定位：
+
+1. **点序对应错误**：检查 \`obj_pts\` 与 \`img_pts\` 的索引顺序是否严格一致（例如一个是顺时针、另一个是 Z 字形）。
+2. **单位不统一**：\`obj_pts\` 推荐统一使用 **米（m）**，避免毫米与米混用导致后续外参平移矩阵缩放错误。
+3. **图像分辨率与标定不一致**：如果在 1280×1024 下标定，却在 640×480 裁剪或缩放图上跑 PnP，必须同步按比例缩放 $f_x, f_y, c_x, c_y$ 或扣除 ROI 偏移量。
+4. **远距离像素量化噪声**：目标距离超过 4~5 米时，1 像素的角点抖动就会带来数厘米的距离跳变，此时应在前端加入亚像素精修，并在后端使用扩展卡尔曼滤波（EKF）做时间域平滑。
+`
+      },
+      {
+        slug: "edge-tensorrt-quantization-deployment",
+        title: "目标检测与关键点模型在边缘端的 TensorRT 量化部署",
+        date: "2026-11-05",
+        category: "边缘部署",
+        tags: ["TensorRT", "ONNX", "YOLO", "FP16", "INT8", "CUDA"],
+        cover: "tensorrt",
+        summary: "从 PyTorch 权重到 ONNX 静态图导出，再到 TensorRT Engine 构建与 FP16/INT8 量化加速的全流程指南。重点解析关键点回归头在量化过程中的精度保护策略与异步推理流水线设计。",
+        content: `
+## 1. 边缘端部署的核心瓶颈
+
+在嵌入式算力平台（如 Jetson Orin 系列）上运行高帧率视觉检测与关键点模型时，单纯在 PyTorch 中调用 \`model(img)\` 往往难以跑满相机帧率。主要开销集中在三个环节：
+
+- **图执行开销**：Python 解释器调度与细粒度算子频繁触发 CUDA Kernel 启动。
+- **显存带宽瓶颈**：FP32 权重体积大，卷积与归一化层之间存在大量中间特征图读写。
+- **串行前后处理**：CPU 端图像 Letterbox 缩放、BGR→RGB 转换及 NMS 后处理阻塞了 GPU 推理流水线。
+
+使用 **TensorRT** 将网络编译为针对当前 GPU 架构定制的 \`.engine\` 序列化引擎，通过**算子融合（Conv + BN + SiLU）**与**低精度量化（FP16 / INT8）**，通常可以获得 **3x ~ 6x** 的端到端吞吐提升。
+
+---
+
+## 2. ONNX 导出与图简化要点
+
+在进入 TensorRT 编译前，务必保证 ONNX 计算图干净且无冗余动态算子：
+
+1. **固定输入尺寸**：若相机输入分辨率恒定（如 \`1x3x640x640\`），优先使用静态 Shape 导出，能让 TensorRT 在编译阶段搜索到最优的 GEMM/Conv Tactic。
+2. **剥离复杂后处理**：将复杂的坐标解码或跨框架不兼容的 NMS 留到 C++ / CUDA 后处理中完成，避免导出包含大量 \`ScatterND\` 或动态 \`Slice\` 的低效节点。
+3. **执行 onnx-simplifier**：折叠常量与冗余 Reshape 节点，大幅降低解析失败率。
+
+${FENCE}bash
+# 1. 简化 ONNX 计算图
+onnxsim model_pose.onnx model_pose_sim.onnx
+
+# 2. 使用 trtexec 快速测试 FP16 引擎构建与纯推理耗时
+/usr/src/tensorrt/bin/trtexec \\
+  --onnx=model_pose_sim.onnx \\
+  --saveEngine=model_pose_fp16.engine \\
+  --fp16 \\
+  --workspace=2048 \\
+  --avgRuns=200
+${FENCE}
+
+---
+
+## 3. FP16 与 INT8 量化的精度权衡
+
+在同时包含**边界框检测**与**关键点坐标回归**的多任务网络中，不同精度模式的表现差异非常直观：
+
+| 精度模式 | 理论算力增益 | 显存占用 | 关键点定位误差变化 | 工程推荐度 |
+| :--- | :---: | :---: | :--- | :--- |
+| **FP32** | 1.0x (基准) | 100% | 0 px (基准) | 仅作精度对齐参考 |
+| **FP16** | ~2.0x - 2.8x | ~50% | < 0.05 px（几乎无损） | **首选方案**，性价比最高 |
+| **PTQ INT8** | ~3.0x - 4.5x | ~25% | 0.4 ~ 1.5 px（回归头易掉点） | 需对检测/关键点输出头回退至 FP16 |
+| **QAT INT8** | ~3.0x - 4.5x | ~25% | < 0.15 px | 对极致帧率有硬要求时采用 |
+
+> **避坑提示**：如果你尝试对 Pose/关键点模型开启 INT8 量化，**千万不要把最后一个 Regression Head 量化为 INT8**。坐标回归对量化步长极度敏感，可在 \`IBuilderConfig\` 中开启 \`kOBEY_PRECISION_CONSTRAINTS\`，将 Head 层的输出节点强制指定为 \`DataType::kHALF\`（FP16），即可兼顾速度与亚像素精度。
+
+---
+
+## 4. C++ 异步推理流水线框架
+
+为了把 CPU 预处理、H2D 拷贝、GPU 推理和 D2H 拷贝充分重叠，推荐使用独立的 \`cudaStream_t\` 与固定内存（Pinned Memory）：
+
+${FENCE}cpp
+#include <NvInfer.h>
+#include <cuda_runtime_api.h>
+#include <fstream>
+#include <memory>
+#include <vector>
+
+class TrtPoseEngine {
+public:
+    bool loadEngine(const std::string& engine_path) {
+        std::ifstream file(engine_path, std::ios::binary);
+        if (!file.good()) return false;
+
+        file.seekg(0, std::ifstream::end);
+        size_t size = file.tellg();
+        file.seekg(0, std::ifstream::beg);
+
+        std::vector<char> buffer(size);
+        file.read(buffer.data(), size);
+
+        runtime_.reset(nvinfer1::createInferRuntime(logger_));
+        engine_.reset(runtime_->deserializeCudaEngine(buffer.data(), size));
+        context_.reset(engine_->createExecutionContext());
+        cudaStreamCreate(&stream_);
+        return (engine_ != nullptr && context_ != nullptr);
+    }
+
+    void inferAsync(void* d_input, void* d_output, float* h_output, size_t out_bytes) {
+        // TensorRT 10+ 推荐使用 setTensorAddress + enqueueV3
+        context_->setTensorAddress("images", d_input);
+        context_->setTensorAddress("output0", d_output);
+
+        // 在独立 CUDA Stream 上异步提交推理与回传
+        context_->enqueueV3(stream_);
+        cudaMemcpyAsync(h_output, d_output, out_bytes, cudaMemcpyDeviceToHost, stream_);
+        cudaStreamSynchronize(stream_);
+    }
+
+    ~TrtPoseEngine() {
+        if (stream_) cudaStreamDestroy(stream_);
+    }
+
+private:
+    cudaStream_t stream_ = nullptr;
+    // 实际项目中需自定义继承自 nvinfer1::ILogger 的 logger_
+    std::unique_ptr<nvinfer1::IRuntime> runtime_;
+    std::unique_ptr<nvinfer1::ICudaEngine> engine_;
+    std::unique_ptr<nvinfer1::IExecutionContext> context_;
+};
+${FENCE}
+
+将图像 Resize、归一化与 HWC→CHW 排列也用一段 40 行的 CUDA Kernel 实现，把单帧预处理时间从 CPU 的 2.5ms 压低到 **0.15ms 以内**，整套视觉链路即可稳定跑在百帧以上。
+`
+      },
+      {
+        slug: "rgbd-alignment-pointcloud-filtering",
+        title: "RGB-D 深度相机图像对齐与三维点云滤波入门",
+        date: "2026-10-22",
+        category: "三维视觉",
+        tags: ["RGB-D", "点云滤波", "PCL", "深度对齐", "机器人感知"],
+        cover: "pointcloud",
+        summary: "解析 RGB-D 深度相机彩色图与深度图存在视差错位的物理成因，推导像素级对齐的坐标变换链路，并系统对比体素下采样、统计滤波与半径滤波在实时机器人感知中的参数取舍。",
+        content: `
+## 1. 为什么彩色图和深度图不能直接按像素重叠
+
+主流结构光或双目主动红外深度相机（如 Intel RealSense D435i/D455 等）内部包含**独立的 RGB 彩色传感器**与**深度传感器（红外双目）**。两者在物理位置上相隔数厘米（存在基线平移与微小旋转外参），且各自拥有不同的视场角（FOV）和相机内参。
+
+因此，直接取彩色图像素 $(u_c, v_c)$ 对应位置的深度图数值 \`depth[v_c][u_c]\` 会导致明显的**重影错位**——近距离目标的边缘错位甚至可达数十个像素。
+
+---
+
+## 2. 深度图向彩色图对齐（Depth-to-Color Alignment）
+
+工程上最常用的做法是将深度图反投影到三维空间，再通过外参重投影至彩色相机坐标系，实现“**每个彩色像素都能直接查到对应深度**”：
+
+1. **反投影（Depth 2D → 3D）**：利用深度相机内参 $K_d$ 与像素深度 $Z_d$ 计算三维点 $P_d$。
+2. **刚体变换（Depth 3D → Color 3D）**：利用出厂标定或手眼标定的外参 $[R_{d\\to c}, t_{d\\to c}]$ 转换坐标系：
+
+$$P_c = R_{d \\to c} \\cdot P_d + t_{d \\to c}$$
+
+3. **重投影（Color 3D → Color 2D）**：使用彩色相机内参 $K_c$ 将 $P_c$ 投影到彩色图像平面，生成对齐后的深度图。
+
+> **实用提醒**：对齐操作会暴露出**遮挡空洞（Occlusion Holes）**——即彩色相机能看到、但深度相机被前景挡住的区域，这些位置对齐后的深度值为 \`0\`。在下游计算目标三维质心时，务必先过滤掉 \`z <= 0\` 或超出有效量程的无效像素，切忌直接做均值计算。
+
+---
+
+## 3. 原始三维点云的常见噪声与滤波选型
+
+将对齐后的深度图转换为三维点云后，通常会面临两大问题：**数据量过大**（640×480 一帧即 30 万点）以及物体边缘的**飞点（Flying Pixels）**。
+
+下表对比了三种最常用的点云滤波算子：
+
+| 滤波方法 | 核心原理 | 计算开销 | 主要作用 | 典型适用环节 |
+| :--- | :--- | :---: | :--- | :--- |
+| **直通滤波 (PassThrough)** | 按 X/Y/Z 轴范围硬裁剪 | 极低 | 剔除视场外背景与超量程噪点 | **第一步必做**，瞬间砍掉 60% 无关点 |
+| **体素下采样 (VoxelGrid)** | 将空间划分为立方体网格，每格取质心 | 低 | 保持几何形状同时大幅降低点云密度 | 配准、分割、平面拟合前的核心加速 |
+| **统计离群滤波 (SOR)** | 统计每个点到 $k$ 近邻的平均距离，剔除超出 $\\mu + \\alpha\\sigma$ 的点 | 中高 | 精准清除深度边缘的稀疏飞点 | 静态建图或降采样后的精细去噪 |
+| **半径滤波 (RadiusOutlier)** | 统计球体半径 $r$ 内邻居数，少于阈值则删除 | 中 | 清除孤立悬浮小噪块 | 室内近景避障与物体抓取 |
+
+---
+
+## 4. Python (Open3D) 实时点云预处理流水线
+
+下面的示例展示了标准的“直通裁剪 → 体素下采样 → 统计去噪”三段式处理逻辑，可直接接入 RGB-D 采集线程：
+
+${FENCE}python
+import numpy as np
+import open3d as o3d
+
+
+def preprocess_pointcloud(
+    points_xyz: np.ndarray,
+    z_range: tuple = (0.25, 4.5),
+    voxel_size: float = 0.015,
+    nb_neighbors: int = 20,
+    std_ratio: float = 1.8,
+) -> o3d.geometry.PointCloud:
+    """
+    对原始 RGB-D 点云执行直通裁剪、体素降采样与统计离群滤波
+    """
+    # 1. NumPy 向量化直通滤波（比构建完点云再裁剪快得多）
+    valid_mask = (
+        np.isfinite(points_xyz[:, 2])
+        & (points_xyz[:, 2] >= z_range[0])
+        & (points_xyz[:, 2] <= z_range[1])
+    )
+    filtered_pts = points_xyz[valid_mask]
+
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(filtered_pts)
+
+    # 2. 体素网格下采样（大幅压缩点数，建议放在 SOR 之前！）
+    if voxel_size > 0:
+        pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
+
+    # 3. 统计离群点去除（清除深度跳变边缘的飞点）
+    if len(pcd.points) > nb_neighbors:
+        pcd, _ = pcd.remove_statistical_outlier(
+            nb_neighbors=nb_neighbors,
+            std_ratio=std_ratio,
+        )
+
+    return pcd
+${FENCE}
+
+> **性能黄金法则**：永远先执行 **直通裁剪** 和 **体素下采样**，最后再执行 **统计滤波（SOR）**。如果顺序颠倒，对 30 万原始点构建 KD-Tree 会把单帧延迟从 8ms 拖慢到 150ms 以上。
+`
+      },
+      {
+        slug: "github-pages-maintenance-guide",
+        title: "如何用 GitHub Pages 维护本博客（使用与自定义指南）",
+        date: "2026-10-08",
+        category: "工程实践",
+        tags: ["GitHub Pages", "博客配置", "Markdown", "部署指南"],
+        cover: "terminal",
+        summary: "手把手说明如何将本单文件站点部署到 OdeOfFate.github.io 仓库，如何修改站点信息、利用内置 Markdown 编辑器快速发布新文章，以及常见的自定义扩展技巧。",
+        content: `
+## 1. 三分钟上线到 GitHub Pages
+
+本博客采用**零构建单文件架构**——所有界面样式、交互脚本、矢量封面和文章内容均封装在同一个 \`index.html\` 中，不需要本地安装 Node.js、Hexo 或配置复杂的 GitHub Actions，直接推送即可生效。
+
+### 部署步骤
+
+1. 登录你的 GitHub 账号（\`https://github.com/OdeOfFate\`），新建一个 **Public（公开）** 仓库，仓库名称必须严格填写为：\`OdeOfFate.github.io\`。
+2. 将本文件保存为 \`index.html\` 并上传到仓库根目录（网页端点击 **Add file → Upload files**，或使用 Git 命令行推送）：
+
+${FENCE}bash
+git clone https://github.com/OdeOfFate/OdeOfFate.github.io.git
+cd OdeOfFate.github.io
+
+# 将下载好的 index.html 放入此目录后执行：
+git add index.html
+git commit -m "feat: init OdeOfFate tech blog"
+git push origin main
+${FENCE}
+
+3. 进入仓库的 **Settings → Pages**，在 **Build and deployment** 下将 Source 保持为 **Deploy from a branch**，Branch 选择 \`main\` 分支和 \`/(root)\` 目录，点击 **Save**。
+4. 等待约 1 分钟，刷新页面即可通过 \`https://odeoffate.github.io\` 正式访问你的个人博客。
+
+---
+
+## 2. 修改个人信息与网站标题
+
+打开 \`index.html\`，搜索 \`const SITE_CONFIG\`，你可以直接修改以下字段：
+
+- **siteName / heroTitle**：修改左上角站点名称和首屏大标题。
+- **subtitles**：修改首屏打字机循环播放的标语数组，支持增删任意条数。
+- **author**：修改「关于」页面中的个人简介、技能标签（\`skills\`）和代表项目卡片（\`projects\`）。
+
+---
+
+## 3. 如何快速发布一篇新文章
+
+为了免去手写转义字符的麻烦，本网站已经内置了 **Markdown 编辑器与配置生成器**：
+
+1. 点击页面右上角导航栏的 **铅笔图标**（或页脚的「在线撰写新文章」）。
+2. 填写文章标题、分类、标签、封面样式和摘要，并在左侧用 Markdown 编写正文，右侧可实时查看排版效果。
+3. 写完后点击右上角的 **「复制 JS 对象代码」** 按钮。
+4. 打开本地 \`index.html\`，找到 \`const POSTS = [\`，把刚才复制的代码粘贴到数组最前面（记得对象之间保留英文逗号），提交并 \`git push\` 即可自动发布！
+
+---
+
+## 4. 支持的 Markdown 语法速查
+
+本博客内置的轻量解析引擎已针对技术文档做了专门优化：
+
+| 语法元素 | 写法示例 | 渲染效果 |
+| :--- | :--- | :--- |
+| 二/三级标题 | \`## 章节名\` / \`### 小节名\` | 自动生成右侧悬浮目录（TOC）与锚点 |
+| 代码块 | 三个反引号 + 语言名（如 \`cpp\` / \`python\` / \`bash\`） | 语法高亮 + 语言标识 + 一键复制按钮 |
+| 公式高亮块 | \`$$ E = mc^2 $$\` | 居中科技感公式卡片 |
+| 表格 | 标准 Markdown 管道符表格 | 自动带横向滚动保护，移动端不撑破 |
+| 引用提示 | \`> 重点说明\` | 蓝色左边框高亮引用块 |
+
+祝你在 \`odeoffate.github.io\` 持续输出高质量的技术沉淀！
+`
+      }
+    ];
+
+    /* =======================================================================
+       三、纯矢量科技感封面图生成器（零外部图片依赖，永不 404）
+       ======================================================================= */
+    function getCoverSVG(type) {
+      const svgs = {
+        calibration: `
+          <svg viewBox="0 0 480 280" class="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bg-cal" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#0b172a"/>
+                <stop offset="100%" stop-color="#173459"/>
+              </linearGradient>
+              <pattern id="grid-cal" width="24" height="24" patternUnits="userSpaceOnUse">
+                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(56,189,248,0.12)" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="480" height="280" fill="url(#bg-cal)"/>
+            <rect width="480" height="280" fill="url(#grid-cal)"/>
+            <!-- 透视标定板棋盘格 -->
+            <g transform="translate(95, 58) skewY(-8) skewX(12)">
+              <rect x="0" y="0" width="160" height="120" rx="6" fill="rgba(15,23,42,0.85)" stroke="#38bdf8" stroke-width="1.5"/>
+              <g fill="#38bdf8" opacity="0.22">
+                <rect x="16" y="14" width="26" height="22"/><rect x="68" y="14" width="26" height="22"/><rect x="120" y="14" width="26" height="22"/>
+                <rect x="42" y="36" width="26" height="22"/><rect x="94" y="36" width="26" height="22"/>
+                <rect x="16" y="58" width="26" height="22"/><rect x="68" y="58" width="26" height="22"/><rect x="120" y="58" width="26" height="22"/>
+                <rect x="42" y="80" width="26" height="22"/><rect x="94" y="80" width="26" height="22"/>
+              </g>
+              <!-- 检测角点 -->
+              <circle cx="42" cy="36" r="3" fill="#f43f5e"/><circle cx="94" cy="36" r="3" fill="#f43f5e"/>
+              <circle cx="42" cy="80" r="3" fill="#f43f5e"/><circle cx="94" cy="80" r="3" fill="#f43f5e"/>
+            </g>
+            <!-- 6DoF 三维坐标轴 -->
+            <g transform="translate(335, 165)" stroke-width="2.5" stroke-linecap="round">
+              <line x1="0" y1="0" x2="62" y2="-16" stroke="#f43f5e"/>
+              <line x1="0" y1="0" x2="-12" y2="-66" stroke="#22c55e"/>
+              <line x1="0" y1="0" x2="-48" y2="34" stroke="#38bdf8"/>
+              <circle cx="0" cy="0" r="4.5" fill="#ffffff"/>
+              <text x="68" y="-14" fill="#fda4af" font-size="12" font-family="monospace" font-weight="bold">X</text>
+              <text x="-16" y="-73" fill="#86efac" font-size="12" font-family="monospace" font-weight="bold">Y</text>
+              <text x="-62" y="42" fill="#7dd3fc" font-size="12" font-family="monospace" font-weight="bold">Z</text>
+            </g>
+            <!-- 底部技术标注 -->
+            <text x="24" y="254" fill="rgba(186,230,253,0.75)" font-size="11" font-family="monospace">CALIBRATION // PnP 6DoF SOLVER</text>
+          </svg>
+        `,
+        tensorrt: `
+          <svg viewBox="0 0 480 280" class="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bg-trt" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#0a1622"/>
+                <stop offset="100%" stop-color="#132e3b"/>
+              </linearGradient>
+            </defs>
+            <rect width="480" height="280" fill="url(#bg-trt)"/>
+            <!-- 神经网络连接线 -->
+            <g stroke="rgba(45,212,191,0.28)" stroke-width="1.3">
+              <line x1="95" y1="75" x2="205" y2="60"/><line x1="95" y1="75" x2="205" y2="120"/><line x1="95" y1="75" x2="205" y2="180"/>
+              <line x1="95" y1="140" x2="205" y2="60"/><line x1="95" y1="140" x2="205" y2="120"/><line x1="95" y1="140" x2="205" y2="180"/>
+              <line x1="95" y1="205" x2="205" y2="120"/><line x1="95" y1="205" x2="205" y2="180"/><line x1="95" y1="205" x2="205" y2="225"/>
+              <line x1="205" y1="60" x2="315" y2="95"/><line x1="205" y1="120" x2="315" y2="95"/><line x1="205" y1="120" x2="315" y2="175"/>
+              <line x1="205" y1="180" x2="315" y2="175"/><line x1="205" y1="225" x2="315" y2="175"/>
+              <line x1="315" y1="95" x2="395" y2="135"/><line x1="315" y1="175" x2="395" y2="135"/>
+            </g>
+            <!-- 节点 -->
+            <g fill="#0f172a" stroke="#2dd4bf" stroke-width="2">
+              <circle cx="95" cy="75" r="9"/><circle cx="95" cy="140" r="9"/><circle cx="95" cy="205" r="9"/>
+              <circle cx="205" cy="60" r="10"/><circle cx="205" cy="120" r="10"/><circle cx="205" cy="180" r="10"/><circle cx="205" cy="225" r="10"/>
+              <circle cx="315" cy="95" r="11" stroke="#38bdf8"/><circle cx="315" cy="175" r="11" stroke="#38bdf8"/>
+            </g>
+            <!-- 量化核心芯片块 -->
+            <rect x="372" y="108" width="60" height="54" rx="10" fill="rgba(45,212,191,0.16)" stroke="#2dd4bf" stroke-width="2"/>
+            <text x="402" y="139" text-anchor="middle" fill="#5eead4" font-size="13" font-family="monospace" font-weight="bold">FP16</text>
+            <text x="24" y="254" fill="rgba(153,246,228,0.78)" font-size="11" font-family="monospace">TENSORRT // EDGE INFERENCE ENGINE</text>
+          </svg>
+        `,
+        pointcloud: `
+          <svg viewBox="0 0 480 280" class="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bg-pc" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#0f1126"/>
+                <stop offset="100%" stop-color="#1d244c"/>
+              </linearGradient>
+            </defs>
+            <rect width="480" height="280" fill="url(#bg-pc)"/>
+            <!-- 深度点云波纹散点 -->
+            <g>
+              <ellipse cx="240" cy="150" rx="165" ry="62" fill="none" stroke="rgba(129,140,248,0.22)" stroke-dasharray="4 6"/>
+              <ellipse cx="240" cy="138" rx="125" ry="46" fill="none" stroke="rgba(56,189,248,0.28)" stroke-dasharray="3 5"/>
+              <ellipse cx="240" cy="126" rx="82" ry="30" fill="none" stroke="rgba(192,132,252,0.35)" stroke-dasharray="2 4"/>
+              <circle cx="135" cy="155" r="3" fill="#38bdf8"/><circle cx="158" cy="132" r="2.5" fill="#60a5fa"/>
+              <circle cx="182" cy="118" r="3.2" fill="#818cf8"/><circle cx="205" cy="108" r="3.5" fill="#a78bfa"/>
+              <circle cx="240" cy="96" r="4" fill="#e879f9"/><circle cx="272" cy="110" r="3.5" fill="#a78bfa"/>
+              <circle cx="302" cy="125" r="3" fill="#818cf8"/><circle cx="332" cy="145" r="2.8" fill="#38bdf8"/>
+              <circle cx="165" cy="175" r="2.5" fill="#38bdf8"/><circle cx="215" cy="168" r="3" fill="#818cf8"/>
+              <circle cx="265" cy="162" r="3.2" fill="#c084fc"/><circle cx="310" cy="174" r="2.5" fill="#60a5fa"/>
+              <circle cx="235" cy="135" r="3.5" fill="#f472b6"/><circle cx="195" cy="144" r="2.8" fill="#818cf8"/>
+              <circle cx="285" cy="140" r="2.8" fill="#a78bfa"/><circle cx="356" cy="158" r="2.2" fill="#38bdf8"/>
+              <circle cx="118" cy="138" r="2.2" fill="#60a5fa"/><circle cx="248" cy="78" r="2.5" fill="#f0abfc"/>
+            </g>
+            <!-- 体素框 -->
+            <rect x="202" y="88" width="76" height="76" rx="6" fill="none" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="5 3"/>
+            <text x="24" y="254" fill="rgba(199,210,254,0.78)" font-size="11" font-family="monospace">RGB-D // 3D POINTCLOUD FILTER</text>
+          </svg>
+        `,
+        terminal: `
+          <svg viewBox="0 0 480 280" class="w-full h-full object-cover" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bg-term" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#0c1322"/>
+                <stop offset="100%" stop-color="#1e293b"/>
+              </linearGradient>
+            </defs>
+            <rect width="480" height="280" fill="url(#bg-term)"/>
+            <!-- 仿终端窗口 -->
+            <rect x="58" y="42" width="364" height="178" rx="12" fill="#0f172a" stroke="#334155" stroke-width="1.6"/>
+            <line x1="58" y1="72" x2="422" y2="72" stroke="#1e293b" stroke-width="1.5"/>
+            <circle cx="80" cy="57" r="4.5" fill="#ef4444"/>
+            <circle cx="96" cy="57" r="4.5" fill="#f59e0b"/>
+            <circle cx="112" cy="57" r="4.5" fill="#22c55e"/>
+            <text x="132" y="61" fill="#64748b" font-size="10.5" font-family="monospace">odeoffate.github.io — zsh</text>
+            <text x="78" y="102" fill="#38bdf8" font-size="12" font-family="monospace">$ git add index.html</text>
+            <text x="78" y="128" fill="#94a3b8" font-size="12" font-family="monospace">$ git commit -m "docs: publish post"</text>
+            <text x="78" y="154" fill="#4ade80" font-size="12" font-family="monospace">$ git push origin main</text>
+            <text x="78" y="184" fill="#e2e8f0" font-size="11.5" font-family="monospace">&gt; Deployed live in 18s [OK]</text>
+            <text x="24" y="254" fill="rgba(148,163,184,0.8)" font-size="11" font-family="monospace">GITHUB PAGES // ZERO-BUILD WORKFLOW</text>
+          </svg>
+        `
+      };
+      return svgs[type] || svgs.calibration;
+    }
+
+    /* =======================================================================
+       四、轻量级 Markdown 解析与单趟代码高亮引擎
+       ======================================================================= */
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    /**
+     * 单趟词法高亮（杜绝替换冲突，安全高亮 C++/Python/Bash/JS）
+     */
+    function highlightCode(rawCode, lang) {
+      const escaped = escapeHtml(rawCode);
+      const l = (lang || "").toLowerCase();
+
+      const pattern = /(&quot;[^&]*?&quot;|&#39;[^&]*?&#39;|\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*)|\b(const|let|var|function|return|if|else|for|while|class|struct|public|private|protected|namespace|using|template|typename|auto|bool|void|int|float|double|size_t|static|true|false|nullptr|def|import|from|as|in|and|or|not|None|True|False|git|cd|cmake|make|echo)\b|\b(cv|std|nvinfer1|np|o3d|Mat|Point2f|Point3f|vector|string|unique_ptr|cudaStream_t|PoseResult)\b|\b(\d+(?:\.\d+)?[fF]?)\b/g;
+
+      return escaped.replace(pattern, (match, commentOrStr, kw, typeTok, num) => {
+        if (commentOrStr) {
+          if (commentOrStr.startsWith("&quot;") || commentOrStr.startsWith("&#39;")) {
+            return `<span class="tok-string">${commentOrStr}</span>`;
+          }
+          if (commentOrStr.startsWith("#include") || commentOrStr.startsWith("#define")) {
+            return `<span class="tok-macro">${commentOrStr}</span>`;
+          }
+          // 非 Python/Bash 中的 # 若不是预处理则按注释处理
+          if (commentOrStr.startsWith("#") && !["py", "python", "bash", "sh", "yaml", "yml"].includes(l) && !commentOrStr.startsWith("#")) {
+            return commentOrStr;
+          }
+          return `<span class="tok-comment">${commentOrStr}</span>`;
+        }
+        if (kw) return `<span class="tok-keyword">${kw}</span>`;
+        if (typeTok) return `<span class="tok-type">${typeTok}</span>`;
+        if (num) return `<span class="tok-number">${num}</span>`;
+        return match;
+      });
+    }
+
+    /**
+     * 行内 Markdown 渲染（粗体、斜体、行内代码、链接、简单行内公式美观化）
+     */
+    function parseInline(text) {
+      let s = escapeHtml(text);
+
+      // 保护行内代码
+      const inlineCodes = [];
+      s = s.replace(/`([^`]+)`/g, (_, code) => {
+        const idx = inlineCodes.length;
+        inlineCodes.push(`<code class="inline-code">${code}</code>`);
+        return `%%INLINECODE_${idx}%%`;
+      });
+
+      // 行内公式 $...$ 美观渲染
+      s = s.replace(/\$([^$\n]+?)\$/g, (_, formula) => {
+        const pretty = formatMathPretty(formula);
+        return `<span class="font-serif italic text-slate-900 dark:text-sky-200 px-0.5">${pretty}</span>`;
+      });
+
+      // 链接 [text](url)
+      s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|#[^\s)]+)\)/g, (_, label, url) => {
+        const isExt = url.startsWith("http");
+        return `<a href="${url}" ${isExt ? 'target="_blank" rel="noopener noreferrer"' : ''}>${label}</a>`;
+      });
+
+      // 粗体与斜体
+      s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
+      // 还原行内代码
+      s = s.replace(/%%INLINECODE_(\d+)%%/g, (_, idx) => inlineCodes[Number(idx)]);
+      return s;
+    }
+
+    /**
+     * 将常见 LaTeX 符号友好转换为易读 Unicode 排版（零外部 MathJax 依赖）
+     */
+    function formatMathPretty(raw) {
+      return raw
+        .replace(/\\begin\{bmatrix\}/g, "[ ")
+        .replace(/\\end\{bmatrix\}/g, " ]")
+        .replace(/\\\\/g, " ; ")
+        .replace(/&amp;/g, "  ")
+        .replace(/\\quad/g, "   ")
+        .replace(/\\cdot/g, "·")
+        .replace(/\\to/g, "→")
+        .replace(/\\alpha/g, "α")
+        .replace(/\\sigma/g, "σ")
+        .replace(/\\mu/g, "μ")
+        .replace(/\\times/g, "×")
+        .replace(/_\{([^}]+)\}/g, "<sub>$1</sub>")
+        .replace(/_([a-zA-Z0-9])/g, "<sub>$1</sub>")
+        .replace(/\^\{([^}]+)\}/g, "<sup>$1</sup>")
+        .replace(/\^([a-zA-Z0-9])/g, "<sup>$1</sup>");
+    }
+
+    /**
+     * 完整 Markdown 转 HTML，并提取 H2/H3 目录数组
+     */
+    function renderMarkdown(mdText) {
+      const toc = [];
+      let headingCounter = 0;
+      const lines = mdText.replace(/\r\n/g, "\n").split("\n");
+      const htmlParts = [];
+
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        // 空行
+        if (!trimmed) {
+          i++;
+          continue;
+        }
+
+        // 1. 围栏代码块 ```lang
+        if (trimmed.startsWith(FENCE)) {
+          const lang = trimmed.slice(3).trim() || "text";
+          const codeLines = [];
+          i++;
+          while (i < lines.length && !lines[i].trim().startsWith(FENCE)) {
+            codeLines.push(lines[i]);
+            i++;
+          }
+          i++; // 跳过结束围栏
+          const rawCode = codeLines.join("\n");
+          const codeId = "code-" + Math.random().toString(36).slice(2, 9);
+          const highlighted = highlightCode(rawCode, lang);
+
+          htmlParts.push(`
+            <div class="code-wrapper">
+              <div class="code-header">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400/80"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+                  </span>
+                  <span class="font-mono uppercase tracking-wider text-[11px] ml-1 text-slate-300">${escapeHtml(lang)}</span>
+                </div>
+                <button type="button" data-copy-target="${codeId}" class="btn-copy-code inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-700/80 hover:bg-blue-600 text-slate-200 hover:text-white transition-colors text-[11px] font-medium">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>复制代码</span>
+                </button>
+              </div>
+              <pre class="code-pre"><code id="${codeId}" data-raw="${encodeURIComponent(rawCode)}">${highlighted}</code></pre>
+            </div>
+          `);
+          continue;
+        }
+
+        // 2. 块级数学公式 $$...$$
+        if (trimmed.startsWith("$$")) {
+          let formula = trimmed.slice(2);
+          if (formula.endsWith("$$") && formula.length > 2) {
+            formula = formula.slice(0, -2);
+            i++;
+          } else {
+            const fLines = [formula];
+            i++;
+            while (i < lines.length && !lines[i].trim().endsWith("$$")) {
+              fLines.push(lines[i]);
+              i++;
+            }
+            if (i < lines.length) {
+              fLines.push(lines[i].trim().slice(0, -2));
+              i++;
+            }
+            formula = fLines.join(" ");
+          }
+          htmlParts.push(`<div class="md-math-block">${formatMathPretty(escapeHtml(formula.trim()))}</div>`);
+          continue;
+        }
+
+        // 3. 分割线 ---
+        if (/^-{3,}$/.test(trimmed)) {
+          htmlParts.push(`<hr class="my-7 border-slate-200 dark:border-slate-700/80" />`);
+          i++;
+          continue;
+        }
+
+        // 4. 标题 H2 / H3 / H4
+        const hMatch = trimmed.match(/^(#{2,4})\s+(.+)$/);
+        if (hMatch) {
+          const level = hMatch[1].length;
+          const titleText = hMatch[2].trim();
+          const id = `sec-${++headingCounter}`;
+          if (level === 2 || level === 3) {
+            toc.push({ id, level, text: titleText });
+          }
+          htmlParts.push(`<h${level} id="${id}">${parseInline(titleText)}</h${level}>`);
+          i++;
+          continue;
+        }
+
+        // 5. 引用块 >
+        if (trimmed.startsWith(">")) {
+          const quoteLines = [];
+          while (i < lines.length && lines[i].trim().startsWith(">")) {
+            quoteLines.push(lines[i].trim().replace(/^>\s?/, ""));
+            i++;
+          }
+          htmlParts.push(`<blockquote><p>${quoteLines.map(parseInline).join("<br/>")}</p></blockquote>`);
+          continue;
+        }
+
+        // 6. 表格 | ... |
+        if (trimmed.startsWith("|") && i + 1 < lines.length && /^\|?[\s:-]+\|/.test(lines[i + 1].trim())) {
+          const parseRow = (rowStr) => rowStr.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+          const headers = parseRow(lines[i]);
+          i += 2; // 跳过分隔行
+          const bodyRows = [];
+          while (i < lines.length && lines[i].trim().startsWith("|")) {
+            bodyRows.push(parseRow(lines[i]));
+            i++;
+          }
+          const thead = `<thead><tr>${headers.map(h => `<th>${parseInline(h)}</th>`).join("")}</tr></thead>`;
+          const tbody = `<tbody>${bodyRows.map(r => `<tr>${r.map(c => `<td>${parseInline(c)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+          htmlParts.push(`<div class="md-table-wrap"><table>${thead}${tbody}</table></div>`);
+          continue;
+        }
+
+        // 7. 无序列表 - / *
+        if (/^[-*]\s+/.test(trimmed)) {
+          const items = [];
+          while (i < lines.length && /^[-*]\s+/.test(lines[i].trim())) {
+            items.push(`<li>${parseInline(lines[i].trim().replace(/^[-*]\s+/, ""))}</li>`);
+            i++;
+          }
+          htmlParts.push(`<ul>${items.join("")}</ul>`);
+          continue;
+        }
+
+        // 8. 有序列表 1.
+        if (/^\d+\.\s+/.test(trimmed)) {
+          const items = [];
+          while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
+            items.push(`<li>${parseInline(lines[i].trim().replace(/^\d+\.\s+/, ""))}</li>`);
+            i++;
+          }
+          htmlParts.push(`<ol>${items.join("")}</ol>`);
+          continue;
+        }
+
+        // 9. 普通段落（合并连续文本行）
+        const paraLines = [];
+        while (
+          i < lines.length &&
+          lines[i].trim() &&
+          !lines[i].trim().startsWith(FENCE) &&
+          !lines[i].trim().startsWith("$$") &&
+          !/^#{2,4}\s+/.test(lines[i].trim()) &&
+          !lines[i].trim().startsWith(">") &&
+          !/^[-*]\s+/.test(lines[i].trim()) &&
+          !/^\d+\.\s+/.test(lines[i].trim()) &&
+          !/^-{3,}$/.test(lines[i].trim()) &&
+          !lines[i].trim().startsWith("|")
+        ) {
+          paraLines.push(lines[i].trim());
+          i++;
+        }
+        htmlParts.push(`<p>${parseInline(paraLines.join(" "))}</p>`);
+      }
+
+      return { html: htmlParts.join("\n"), toc };
+    }
+
+    /* =======================================================================
+       五、辅助工具：统计字数/阅读时长、剪贴板安全复制、Toast 提示
+       ======================================================================= */
+    function getPostMetrics(content) {
+      const clean = content.replace(/[#*`>$_\[\]()|-]/g, "").replace(/\s+/g, "");
+      const chars = clean.length;
+      const mins = Math.max(1, Math.round(chars / 380));
+      return { chars, mins };
+    }
+
+    function safeCopyText(text, successMsg = "已复制到剪贴板") {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        ta.style.top = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (ok) {
+          showToast(successMsg);
+        } else {
+          showToast("复制失败，请手动选中复制", "error");
+        }
+      } catch (err) {
+        showToast("复制失败，请手动选中复制", "error");
+      }
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      const bg = type === "error"
+        ? "bg-rose-600 text-white"
+        : "bg-slate-900/95 dark:bg-sky-500 text-white dark:text-slate-950";
+      toast.className = `px-4 py-2.5 rounded-xl text-sm font-medium shadow-xl ${bg} transition-all duration-300 opacity-0 translate-y-2`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove("opacity-0", "translate-y-2");
+      });
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "translate-y-2");
+        setTimeout(() => toast.remove(), 300);
+      }, 2200);
+    }
+
+    /* =======================================================================
+       六、全局状态与主题管理 (localStorage)
+       ======================================================================= */
+    const state = {
+      route: "home",
+      slug: null,
+      filterCategory: null,
+      filterTag: null,
+      tocObserver: null
+    };
+
+    function initTheme() {
+      const saved = localStorage.getItem("odeoffate_theme");
+      const preferDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const isDark = saved ? saved === "dark" : preferDark;
+      applyTheme(isDark, false);
+    }
+
+    function applyTheme(isDark, notify = true) {
+      document.documentElement.classList.toggle("dark", isDark);
+      localStorage.setItem("odeoffate_theme", isDark ? "dark" : "light");
+      document.getElementById("icon-sun").classList.toggle("hidden", !isDark);
+      document.getElementById("icon-moon").classList.toggle("hidden", isDark);
+      if (notify) {
+        showToast(isDark ? "已切换为暗色模式" : "已切换为亮色模式");
+      }
+    }
+
+    /* =======================================================================
+       七、Hero Banner Canvas 科技网格与粒子连线微动效
+       ======================================================================= */
+    let heroCanvasCleanup = null;
+    function initHeroCanvas() {
+      const canvas = document.getElementById("hero-canvas");
+      const banner = document.getElementById("hero-banner");
+      if (!canvas || !banner) return;
+      const ctx = canvas.getContext("2d");
+
+      let width = 0, height = 0, dpr = 1;
+      let particles = [];
+      const mouse = { x: null, y: null };
+      let animId = null;
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = banner.clientWidth;
+        height = banner.clientHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const count = Math.min(72, Math.max(28, Math.floor((width * height) / 14500)));
+        particles = Array.from({ length: count }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.42,
+          vy: (Math.random() - 0.5) * 0.42,
+          r: Math.random() * 1.8 + 1.1
+        }));
+      }
+
+      function drawGrid() {
+        const step = 48;
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.065)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 0; x <= width; x += step) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+        }
+        for (let y = 0; y <= height; y += step) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+        }
+        ctx.stroke();
+      }
+
+      function frame() {
+        ctx.clearRect(0, 0, width, height);
+        drawGrid();
+
+        const maxDist = width < 640 ? 95 : 130;
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > width) p.vx *= -1;
+          if (p.y < 0 || p.y > height) p.vy *= -1;
+
+          // 绘制粒子节点
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(125, 211, 252, 0.65)";
+          ctx.fill();
+
+          // 粒子连线
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const dx = p.x - q.x;
+            const dy = p.y - q.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < maxDist) {
+              const alpha = (1 - dist / maxDist) * 0.28;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.strokeStyle = `rgba(56, 189, 248, ${alpha.toFixed(3)})`;
+              ctx.lineWidth = 0.9;
+              ctx.stroke();
+            }
+          }
+
+          // 鼠标轻交互连线
+          if (mouse.x !== null) {
+            const md = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+            if (md < 145) {
+              const alpha = (1 - md / 145) * 0.42;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(mouse.x, mouse.y);
+              ctx.strokeStyle = `rgba(96, 165, 250, ${alpha.toFixed(3)})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+        }
+        animId = requestAnimationFrame(frame);
+      }
+
+      const onMouseMove = (e) => {
+        const rect = banner.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+      };
+      const onMouseLeave = () => { mouse.x = null; mouse.y = null; };
+
+      window.addEventListener("resize", resize);
+      banner.addEventListener("mousemove", onMouseMove);
+      banner.addEventListener("mouseleave", onMouseLeave);
+      resize();
+      frame();
+
+      heroCanvasCleanup = () => {
+        cancelAnimationFrame(animId);
+        window.removeEventListener("resize", resize);
+      };
+    }
+
+    /* =======================================================================
+       八、打字机循环动效控制器（仅首页 Hero 启用）
+       ======================================================================= */
+    let typingTimer = null;
+    function startTypewriter(elId, texts) {
+      if (typingTimer) clearTimeout(typingTimer);
+      let idx = 0, charIdx = 0, deleting = false;
+
+      function tick() {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        const current = texts[idx];
+
+        if (!deleting) {
+          charIdx++;
+          el.textContent = current.slice(0, charIdx);
+          if (charIdx === current.length) {
+            deleting = true;
+            typingTimer = setTimeout(tick, 2200);
+            return;
+          }
+          typingTimer = setTimeout(tick, 62);
+        } else {
+          charIdx--;
+          el.textContent = current.slice(0, charIdx);
+          if (charIdx === 0) {
+            deleting = false;
+            idx = (idx + 1) % texts.length;
+            typingTimer = setTimeout(tick, 420);
+            return;
+          }
+          typingTimer = setTimeout(tick, 34);
+        }
+      }
+      tick();
+    }
+
+    /* =======================================================================
+       九、统计计算辅助
+       ======================================================================= */
+    function getBlogStats() {
+      const catMap = {};
+      const tagMap = {};
+      POSTS.forEach(p => {
+        catMap[p.category] = (catMap[p.category] || 0) + 1;
+        p.tags.forEach(t => { tagMap[t] = (tagMap[t] || 0) + 1; });
+      });
+      return {
+        postCount: POSTS.length,
+        categoryCount: Object.keys(catMap).length,
+        tagCount: Object.keys(tagMap).length,
+        catMap,
+        tagMap
+      };
+    }
+
+    /* =======================================================================
+       十、各视图渲染器 (Home / Post / Archives / Categories / Tags / About)
+       ======================================================================= */
+    function setHeroLayout(mode, htmlContent) {
+      const banner = document.getElementById("hero-banner");
+      const heroContent = document.getElementById("hero-content");
+      const scrollBtn = document.getElementById("hero-scroll-btn");
+      const mainContainer = document.getElementById("main-container");
+
+      if (typingTimer) clearTimeout(typingTimer);
+
+      if (mode === "home") {
+        banner.className = "relative w-full min-h-[470px] h-[72vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300";
+        scrollBtn.classList.remove("hidden");
+        mainContainer.className = "max-w-5xl mx-auto transition-all duration-300";
+      } else if (mode === "post") {
+        banner.className = "relative w-full min-h-[340px] h-[48vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300";
+        scrollBtn.classList.add("hidden");
+        mainContainer.className = "max-w-6xl mx-auto transition-all duration-300";
+      } else {
+        banner.className = "relative w-full min-h-[300px] h-[42vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300";
+        scrollBtn.classList.add("hidden");
+        mainContainer.className = "max-w-5xl mx-auto transition-all duration-300";
+      }
+
+      heroContent.innerHTML = htmlContent;
+      // 触发 Canvas 适应新高度
+      window.dispatchEvent(new Event("resize"));
+    }
+
+    function updateNavActive(route) {
+      document.querySelectorAll(".nav-link").forEach(a => {
+        const isMatch = a.dataset.nav === route;
+        a.classList.toggle("font-bold", isMatch);
+        a.classList.toggle("bg-white/15", isMatch);
+      });
+    }
+
+    /**
+     * 1. 首页文章流视图
+     */
+    function renderHomeView() {
+      document.title = SITE_CONFIG.siteName;
+      setHeroLayout("home", `
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-xs sm:text-sm text-sky-200 font-mono mb-5 backdrop-blur-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>odeoffate.github.io</span>
+        </div>
+        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-sm">${escapeHtml(SITE_CONFIG.heroTitle)}</h1>
+        <p class="text-base sm:text-xl text-slate-200/90 font-normal min-h-[1.8em]">
+          <span id="hero-typing"></span><span class="typing-cursor"></span>
+        </p>
+      `);
+      startTypewriter("hero-typing", SITE_CONFIG.subtitles);
+
+      const stats = getBlogStats();
+      let list = [...POSTS].sort((a, b) => b.date.localeCompare(a.date));
+
+      if (state.filterCategory) {
+        list = list.filter(p => p.category === state.filterCategory);
+      }
+      if (state.filterTag) {
+        list = list.filter(p => p.tags.includes(state.filterTag));
+      }
+
+      const filterBanner = (state.filterCategory || state.filterTag) ? `
+        <div class="mb-7 px-4 py-3 rounded-xl bg-blue-50 dark:bg-sky-950/40 border border-blue-200/80 dark:border-sky-800/60 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-sm text-slate-700 dark:text-slate-200 flex items-center gap-2">
+            <span class="font-semibold text-blue-600 dark:text-sky-400">当前筛选：</span>
+            ${state.filterCategory ? `<span class="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-xs font-medium">分类：${escapeHtml(state.filterCategory)}</span>` : ""}
+            ${state.filterTag ? `<span class="px-2.5 py-0.5 rounded-full bg-sky-600 text-white text-xs font-medium"># ${escapeHtml(state.filterTag)}</span>` : ""}
+            <span class="text-xs text-slate-500 dark:text-slate-400">共 ${list.length} 篇文章</span>
+          </div>
+          <button type="button" id="btn-clear-filter" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 hover:text-blue-600 dark:hover:text-sky-400 transition-colors">
+            显示全部文章
+          </button>
+        </div>
+      ` : "";
+
+      const cardsHtml = list.length ? list.map(post => {
+        const metrics = getPostMetrics(post.content);
+        return `
+          <article class="group grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-7 pb-8 mb-8 border-b border-slate-200/75 dark:border-slate-700/60 last:border-b-0 last:mb-0 last:pb-0 items-center">
+            <!-- 左侧 SVG 矢量封面图 -->
+            <a href="#post/${post.slug}" class="md:col-span-5 block aspect-[16/10] rounded-xl overflow-hidden shadow-md border border-slate-200/70 dark:border-slate-700/60 bg-slate-900">
+              <div class="w-full h-full transform group-hover:scale-[1.04] transition-transform duration-500">
+                ${getCoverSVG(post.cover)}
+              </div>
+            </a>
+
+            <!-- 右侧文章元信息与摘要 -->
+            <div class="md:col-span-7 flex flex-col justify-between">
+              <div>
+                <a href="#post/${post.slug}" class="block">
+                  <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors leading-snug mb-2.5">
+                    ${escapeHtml(post.title)}
+                  </h2>
+                </a>
+                <p class="text-sm sm:text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3 mb-4">
+                  ${escapeHtml(post.summary)}
+                </p>
+              </div>
+
+              <!-- 底部元数据栏 -->
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
+                <span class="inline-flex items-center gap-1.5 font-mono">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  ${post.date}
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  约 ${metrics.mins} 分钟
+                </span>
+                <button type="button" data-filter-cat="${escapeHtml(post.category)}" class="btn-filter-cat inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-sky-900/40 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-sky-400 transition-colors font-medium">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  ${escapeHtml(post.category)}
+                </button>
+              </div>
+
+              <!-- 标签胶囊 -->
+              <div class="flex flex-wrap gap-1.5 mt-3">
+                ${post.tags.map(tag => `
+                  <button type="button" data-filter-tag="${escapeHtml(tag)}"
+                    class="btn-filter-tag px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50/80 dark:bg-slate-800/90 text-blue-700 dark:text-sky-300 border border-blue-200/60 dark:border-slate-700 hover:border-blue-400 dark:hover:border-sky-400 transition-colors">
+                    # ${escapeHtml(tag)}
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("") : `
+        <div class="py-16 text-center text-slate-500 dark:text-slate-400">
+          <p class="text-base mb-3">该筛选条件下暂无文章</p>
+          <button type="button" id="btn-empty-reset" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm">查看全部文章</button>
+        </div>
+      `;
+
+      // 底部个人快捷名片与站点统计栏
+      const profileStrip = `
+        <div class="mt-10 pt-7 border-t border-slate-200 dark:border-slate-700/70 flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-blue-900 dark:from-sky-500 dark:to-blue-600 text-white flex items-center justify-center font-mono font-bold text-lg shadow-md">
+              OF
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>${escapeHtml(SITE_CONFIG.author.name)}</span>
+                <a href="${SITE_CONFIG.author.github}" target="_blank" rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 text-xs font-normal px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-sky-400 transition-colors">
+                  GitHub ↗
+                </a>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(SITE_CONFIG.author.role)}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-5 sm:gap-7 text-center">
+            <a href="#archives" class="group">
+              <div class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors font-mono">${stats.postCount}</div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">文章</div>
+            </a>
+            <a href="#categories" class="group">
+              <div class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors font-mono">${stats.categoryCount}</div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">分类</div>
+            </a>
+            <a href="#tags" class="group">
+              <div class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors font-mono">${stats.tagCount}</div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">标签</div>
+            </a>
+          </div>
+        </div>
+      `;
+
+      const appView = document.getElementById("app-view");
+      appView.innerHTML = `<div class="view-enter">${filterBanner}${cardsHtml}${profileStrip}</div>`;
+
+      // 绑定筛选事件
+      const clearBtn = document.getElementById("btn-clear-filter") || document.getElementById("btn-empty-reset");
+      if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+          state.filterCategory = null;
+          state.filterTag = null;
+          renderHomeView();
+        });
+      }
+      appView.querySelectorAll(".btn-filter-cat").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.filterCategory = btn.dataset.filterCat;
+          state.filterTag = null;
+          renderHomeView();
+          document.getElementById("main-anchor").scrollIntoView({ behavior: "smooth" });
+        });
+      });
+      appView.querySelectorAll(".btn-filter-tag").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.filterTag = btn.dataset.filterTag;
+          state.filterCategory = null;
+          renderHomeView();
+          document.getElementById("main-anchor").scrollIntoView({ behavior: "smooth" });
+        });
+      });
+    }
+
+    /**
+     * 2. 文章详情阅读视图（正文 + 右侧 Sticky TOC + 上下篇导航）
+     */
+    function renderPostView(slug) {
+      const sorted = [...POSTS].sort((a, b) => b.date.localeCompare(a.date));
+      const idx = sorted.findIndex(p => p.slug === slug);
+      if (idx === -1) {
+        window.location.hash = "#home";
+        return;
+      }
+
+      const post = sorted[idx];
+      const prevPost = idx > 0 ? sorted[idx - 1] : null;
+      const nextPost = idx < sorted.length - 1 ? sorted[idx + 1] : null;
+      const metrics = getPostMetrics(post.content);
+      const { html, toc } = renderMarkdown(post.content);
+
+      document.title = `${post.title} | ${SITE_CONFIG.siteName}`;
+
+      // Hero 自动切换为文章元数据横幅
+      setHeroLayout("post", `
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-sky-200 mb-4 backdrop-blur-sm">
+          <span>${escapeHtml(post.category)}</span>
+        </div>
+        <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-snug mb-4 max-w-3xl mx-auto">
+          ${escapeHtml(post.title)}
+        </h1>
+        <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-slate-200/90 font-mono">
+          <span class="inline-flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${post.date}
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            ${metrics.chars} 字
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            阅读约 ${metrics.mins} 分钟
+          </span>
+        </div>
+      `);
+
+      const tocListHtml = toc.length ? toc.map(item => `
+        <a href="javascript:void(0)" data-toc-id="${item.id}"
+          class="toc-link ${item.level === 3 ? 'pl-5 text-xs' : ''}">
+          ${escapeHtml(item.text)}
+        </a>
+      `).join("") : `<p class="text-xs text-slate-400 px-2">本文暂无二级目录</p>`;
+
+      const appView = document.getElementById("app-view");
+      appView.innerHTML = `
+        <div class="view-enter">
+          <!-- 移动端折叠目录 -->
+          ${toc.length ? `
+            <details class="lg:hidden mb-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3.5">
+              <summary class="font-semibold text-sm text-slate-800 dark:text-slate-100 cursor-pointer select-none flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                文章目录（点击展开）
+              </summary>
+              <nav class="mt-3 space-y-1">${tocListHtml}</nav>
+            </details>
+          ` : ""}
+
+          <!-- 主阅读双栏：左侧 Markdown 正文 + 右侧悬浮 TOC -->
+          <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_235px] gap-10 items-start">
+            <div class="min-w-0">
+              <article class="md-body">${html}</article>
+
+              <!-- 文章标签与版权声明 -->
+              <div class="mt-10 pt-6 border-t border-slate-200 dark:border-slate-700/70">
+                <div class="flex flex-wrap items-center gap-2 mb-5">
+                  <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">标签：</span>
+                  ${post.tags.map(t => `
+                    <button type="button" data-jump-tag="${escapeHtml(t)}"
+                      class="btn-jump-tag px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-sky-300 hover:bg-blue-600 hover:text-white transition-colors">
+                      # ${escapeHtml(t)}
+                    </button>
+                  `).join("")}
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/55 border border-slate-200/80 dark:border-slate-700/70 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  <p><strong class="text-slate-700 dark:text-slate-200">作者：</strong>${escapeHtml(SITE_CONFIG.author.name)} &nbsp;|&nbsp; <strong class="text-slate-700 dark:text-slate-200">协议：</strong>CC BY-NC-SA 4.0（转载请注明出处）</p>
+                </div>
+              </div>
+
+              <!-- 上一篇 / 下一篇 / 返回首页 -->
+              <div class="mt-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                ${prevPost ? `
+                  <a href="#post/${prevPost.slug}" class="group p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-sky-500 transition-colors">
+                    <div class="text-xs text-slate-400 mb-1">← 上一篇</div>
+                    <div class="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-sky-400 line-clamp-1">${escapeHtml(prevPost.title)}</div>
+                  </a>
+                ` : `<div></div>`}
+                ${nextPost ? `
+                  <a href="#post/${nextPost.slug}" class="group p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-sky-500 transition-colors sm:text-right">
+                    <div class="text-xs text-slate-400 mb-1">下一篇 →</div>
+                    <div class="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-sky-400 line-clamp-1">${escapeHtml(nextPost.title)}</div>
+                  </a>
+                ` : `<div></div>`}
+              </div>
+
+              <div class="mt-6 text-center">
+                <a href="#home" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors">
+                  ← 返回文章列表
+                </a>
+              </div>
+            </div>
+
+            <!-- 桌面端右侧悬浮目录 (Sticky TOC) -->
+            <aside class="hidden lg:block sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pl-2">
+              <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 px-2">
+                <svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>目录 TOC</span>
+              </div>
+              <nav id="desktop-toc-nav" class="space-y-0.5 border-l border-slate-200 dark:border-slate-700/80">
+                ${tocListHtml}
+              </nav>
+            </aside>
+          </div>
+        </div>
+      `;
+
+      // 绑定代码块一键复制
+      bindCopyButtons(appView);
+
+      // 绑定标签跳转回首页筛选
+      appView.querySelectorAll(".btn-jump-tag").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.filterTag = btn.dataset.jumpTag;
+          state.filterCategory = null;
+          window.location.hash = "#home";
+        });
+      });
+
+      // 绑定 TOC 点击平滑跳转与滚动高亮
+      bindTocBehavior(toc);
+    }
+
+    function bindCopyButtons(root) {
+      root.querySelectorAll(".btn-copy-code").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = document.getElementById(btn.dataset.copyTarget);
+          if (!target) return;
+          const raw = decodeURIComponent(target.dataset.raw || "");
+          safeCopyText(raw, "代码已复制到剪贴板");
+          const span = btn.querySelector("span");
+          if (span) {
+            const orig = span.textContent;
+            span.textContent = "已复制 ✓";
+            setTimeout(() => { span.textContent = orig; }, 1600);
+          }
+        });
+      });
+    }
+
+    function bindTocBehavior(toc) {
+      if (state.tocObserver) {
+        state.tocObserver.disconnect();
+        state.tocObserver = null;
+      }
+      if (!toc.length) return;
+
+      document.querySelectorAll("[data-toc-id]").forEach(link => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const target = document.getElementById(link.dataset.tocId);
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+      });
+
+      const headingEls = toc.map(item => document.getElementById(item.id)).filter(Boolean);
+      const setActive = (id) => {
+        document.querySelectorAll("#desktop-toc-nav .toc-link").forEach(el => {
+          el.classList.toggle("active", el.dataset.tocId === id);
+        });
+      };
+
+      setActive(toc[0].id);
+
+      state.tocObserver = new IntersectionObserver((entries) => {
+        const visible = entries.filter(e => e.isIntersecting);
+        if (visible.length > 0) {
+          setActive(visible[0].target.id);
+        }
+      }, { rootMargin: "-76px 0px -70% 0px", threshold: 0.1 });
+
+      headingEls.forEach(el => state.tocObserver.observe(el));
+    }
+
+    /**
+     * 3. 归档视图（按年份分组的时间轴）
+     */
+    function renderArchivesView() {
+      document.title = `归档 | ${SITE_CONFIG.siteName}`;
+      setHeroLayout("sub", `
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">归档 Archives</h1>
+        <p class="text-sm sm:text-base text-slate-200/85">共计 ${POSTS.length} 篇技术笔记，按时间轴记录工程探索</p>
+      `);
+
+      const sorted = [...POSTS].sort((a, b) => b.date.localeCompare(a.date));
+      const grouped = {};
+      sorted.forEach(p => {
+        const year = p.date.slice(0, 4);
+        if (!grouped[year]) grouped[year] = [];
+        grouped[year].push(p);
+      });
+
+      const yearsHtml = Object.keys(grouped).sort((a, b) => b.localeCompare(a)).map(year => `
+        <section class="mb-9 last:mb-0">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-2xl font-extrabold font-mono text-slate-900 dark:text-white">${year}</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono bg-blue-50 dark:bg-sky-900/40 text-blue-600 dark:text-sky-300">${grouped[year].length} 篇</span>
+          </div>
+          <div class="border-l-2 border-slate-200 dark:border-slate-700 ml-2.5 pl-6 space-y-3">
+            ${grouped[year].map(post => `
+              <a href="#post/${post.slug}" class="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 py-3 px-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors">
+                <span class="absolute -left-[31px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-blue-500 dark:group-hover:bg-sky-400 ring-4 ring-white dark:ring-fluid-darkCard transition-colors"></span>
+                <span class="font-medium text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">${escapeHtml(post.title)}</span>
+                <div class="flex items-center gap-3 text-xs text-slate-400 font-mono shrink-0">
+                  <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-sans">${escapeHtml(post.category)}</span>
+                  <span>${post.date.slice(5)}</span>
+                </div>
+              </a>
+            `).join("")}
+          </div>
+        </section>
+      `).join("");
+
+      document.getElementById("app-view").innerHTML = `<div class="view-enter">${yearsHtml}</div>`;
+    }
+
+    /**
+     * 4. 分类视图（可折叠分类目录卡片）
+     */
+    function renderCategoriesView() {
+      const stats = getBlogStats();
+      document.title = `分类 | ${SITE_CONFIG.siteName}`;
+      setHeroLayout("sub", `
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">分类 Categories</h1>
+        <p class="text-sm sm:text-base text-slate-200/85">共 ${stats.categoryCount} 个技术专题分类</p>
+      `);
+
+      const catEntries = Object.keys(stats.catMap).sort((a, b) => stats.catMap[b] - stats.catMap[a]);
+      const html = catEntries.map(cat => {
+        const posts = POSTS.filter(p => p.category === cat).sort((a, b) => b.date.localeCompare(a.date));
+        return `
+          <details open class="group rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/35 overflow-hidden mb-4 last:mb-0">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-slate-100/80 dark:hover:bg-slate-800/70 transition-colors">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-blue-500 dark:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span class="font-bold text-base text-slate-900 dark:text-white">${escapeHtml(cat)}</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-mono bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-600">${posts.length} 篇</span>
+            </summary>
+            <div class="px-5 pb-4 pt-1 space-y-1 border-t border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-fluid-darkCard">
+              ${posts.map(p => `
+                <a href="#post/${p.slug}" class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 py-2.5 px-3 rounded-lg hover:bg-blue-50/70 dark:hover:bg-slate-800/70 transition-colors">
+                  <span class="text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-sky-400">${escapeHtml(p.title)}</span>
+                  <span class="text-xs font-mono text-slate-400 shrink-0">${p.date}</span>
+                </a>
+              `).join("")}
+            </div>
+          </details>
+        `;
+      }).join("");
+
+      document.getElementById("app-view").innerHTML = `<div class="view-enter">${html}</div>`;
+    }
+
+    /**
+     * 5. 标签视图（差异字号与配色标签云 + 实时筛选列表）
+     */
+    function renderTagsView(selectedTag = null) {
+      const stats = getBlogStats();
+      document.title = `标签 | ${SITE_CONFIG.siteName}`;
+      setHeroLayout("sub", `
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">标签 Tags</h1>
+        <p class="text-sm sm:text-base text-slate-200/85">共 ${stats.tagCount} 个技术关键词标签，点击即可筛选文章</p>
+      `);
+
+      const palette = [
+        "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-sky-300 dark:border-blue-800/60",
+        "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800/60",
+        "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/60",
+        "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+        "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/50 dark:text-cyan-300 dark:border-cyan-800/60"
+      ];
+
+      const tags = Object.keys(stats.tagMap).sort((a, b) => stats.tagMap[b] - stats.tagMap[a]);
+      const cloudHtml = tags.map((tag, i) => {
+        const count = stats.tagMap[tag];
+        const sizeClass = count >= 2 ? "text-base px-4 py-2 font-semibold" : "text-sm px-3.5 py-1.5 font-medium";
+        const isActive = selectedTag === tag;
+        const styleClass = isActive
+          ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25"
+          : palette[i % palette.length];
+        return `
+          <button type="button" data-cloud-tag="${escapeHtml(tag)}"
+            class="btn-cloud-tag inline-flex items-center gap-1.5 rounded-full border transition-all hover:-translate-y-0.5 ${sizeClass} ${styleClass}">
+            <span># ${escapeHtml(tag)}</span>
+            <span class="text-xs opacity-70 font-mono">${count}</span>
+          </button>
+        `;
+      }).join("");
+
+      const matched = selectedTag ? POSTS.filter(p => p.tags.includes(selectedTag)) : [];
+      const resultHtml = selectedTag ? `
+        <div class="mt-9 pt-7 border-t border-slate-200 dark:border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">标签「${escapeHtml(selectedTag)}」下的文章（${matched.length}）</h2>
+            <button type="button" id="btn-tag-clear" class="text-xs text-blue-600 dark:text-sky-400 hover:underline">清除选中</button>
+          </div>
+          <div class="space-y-2.5">
+            ${matched.map(p => `
+              <a href="#post/${p.slug}" class="block p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-sky-400 transition-colors">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                  <span class="font-semibold text-slate-900 dark:text-white">${escapeHtml(p.title)}</span>
+                  <span class="text-xs font-mono text-slate-400">${p.date}</span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2">${escapeHtml(p.summary)}</p>
+              </a>
+            `).join("")}
+          </div>
+        </div>
+      ` : `
+        <p class="mt-8 text-center text-xs text-slate-400">点击上方任意标签，即可在此展开对应技术文章</p>
+      `;
+
+      const appView = document.getElementById("app-view");
+      appView.innerHTML = `
+        <div class="view-enter">
+          <div class="flex flex-wrap items-center justify-center gap-3 py-4">${cloudHtml}</div>
+          ${resultHtml}
+        </div>
+      `;
+
+      appView.querySelectorAll(".btn-cloud-tag").forEach(btn => {
+        btn.addEventListener("click", () => renderTagsView(btn.dataset.cloudTag));
+      });
+      const clearBtn = document.getElementById("btn-tag-clear");
+      if (clearBtn) clearBtn.addEventListener("click", () => renderTagsView(null));
+    }
+
+    /**
+     * 6. 关于页面（个人简介 + 技术栈徽章 + 代表项目 + GitHub 入口）
+     */
+    function renderAboutView() {
+      const a = SITE_CONFIG.author;
+      document.title = `关于 | ${SITE_CONFIG.siteName}`;
+      setHeroLayout("sub", `
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">关于 About</h1>
+        <p class="text-sm sm:text-base text-slate-200/85">${escapeHtml(a.role)}</p>
+      `);
+
+      document.getElementById("app-view").innerHTML = `
+        <div class="view-enter max-w-3xl mx-auto">
+          <!-- 个人名片头 -->
+          <div class="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-slate-200 dark:border-slate-700/70 text-center sm:text-left">
+            <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0f172a] via-[#1e3a5f] to-[#0284c7] p-0.5 shadow-xl shrink-0">
+              <div class="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center relative overflow-hidden">
+                <svg class="w-14 h-14 text-sky-400" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polygon points="32 6 56 20 56 44 32 58 8 44 8 20 32 6" stroke-opacity="0.45"/>
+                  <text x="32" y="38" text-anchor="middle" fill="#e0f2fe" stroke="none" font-family="monospace" font-weight="bold" font-size="20">OF</text>
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-1">${escapeHtml(a.name)}</h2>
+              <p class="text-sm font-mono text-blue-600 dark:text-sky-400 mb-3">${escapeHtml(a.role)}</p>
+              <p class="text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(a.bio)}</p>
+            </div>
+          </div>
+
+          <!-- 技术栈徽章 -->
+          <section class="py-8 border-b border-slate-200 dark:border-slate-700/70">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <span class="w-1.5 h-5 rounded-full bg-blue-500"></span>
+              技术栈 Tech Stack
+            </h3>
+            <div class="flex flex-wrap gap-2.5">
+              ${a.skills.map(s => `
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                  ${escapeHtml(s.name)}
+                </span>
+              `).join("")}
+            </div>
+          </section>
+
+          <!-- 代表项目 -->
+          <section class="py-8 border-b border-slate-200 dark:border-slate-700/70">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <span class="w-1.5 h-5 rounded-full bg-blue-500"></span>
+              代表项目 Featured Projects
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ${a.projects.map(proj => `
+                <a href="${proj.url}" target="_blank" rel="noopener noreferrer"
+                  class="group p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/70 dark:bg-slate-800/40 hover:border-blue-400 dark:hover:border-sky-400 transition-all flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                      <h4 class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">${escapeHtml(proj.name)}</h4>
+                      <span class="text-xs text-slate-400 group-hover:translate-x-0.5 transition-transform">↗</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">${escapeHtml(proj.desc)}</p>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    ${proj.tech.map(t => `<span class="px-2 py-0.5 rounded-md text-[11px] font-mono bg-white dark:bg-slate-900/70 text-slate-600 dark:text-sky-300 border border-slate-200 dark:border-slate-700">${escapeHtml(t)}</span>`).join("")}
+                  </div>
+                </a>
+              `).join("")}
+            </div>
+          </section>
+
+          <!-- GitHub 入口 -->
+          <div class="pt-8 flex flex-wrap items-center justify-center gap-3.5">
+            <a href="${a.github}" target="_blank" rel="noopener noreferrer"
+              class="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-slate-900 dark:bg-sky-500 hover:bg-blue-700 dark:hover:bg-sky-400 text-white dark:text-slate-950 font-semibold text-sm shadow-lg transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              访问 GitHub (@OdeOfFate)
+            </a>
+            <a href="#home"
+              class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-colors">
+              浏览全部博客文章
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =======================================================================
+       十一、Hash 路由分发器
+       ======================================================================= */
+    function handleRoute() {
+      const hash = window.location.hash || "#home";
+      if (state.tocObserver) {
+        state.tocObserver.disconnect();
+        state.tocObserver = null;
+      }
+
+      if (hash.startsWith("#post/")) {
+        const slug = hash.slice(6);
+        state.route = "post";
+        state.slug = slug;
+        updateNavActive("");
+        renderPostView(slug);
+      } else if (hash === "#archives") {
+        state.route = "archives";
+        updateNavActive("archives");
+        renderArchivesView();
+      } else if (hash === "#categories") {
+        state.route = "categories";
+        updateNavActive("categories");
+        renderCategoriesView();
+      } else if (hash === "#tags") {
+        state.route = "tags";
+        updateNavActive("tags");
+        renderTagsView();
+      } else if (hash === "#about") {
+        state.route = "about";
+        updateNavActive("about");
+        renderAboutView();
+      } else {
+        state.route = "home";
+        updateNavActive("home");
+        renderHomeView();
+      }
+
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+
+    /* =======================================================================
+       十二、站内全局搜索弹窗逻辑 (Ctrl/Cmd + K)
+       ======================================================================= */
+    function openSearchModal() {
+      const modal = document.getElementById("search-modal");
+      const input = document.getElementById("search-input");
+      modal.classList.remove("hidden");
+      input.value = "";
+      renderSearchResults("");
+      setTimeout(() => input.focus(), 40);
+    }
+
+    function closeSearchModal() {
+      document.getElementById("search-modal").classList.add("hidden");
+    }
+
+    function renderSearchResults(query) {
+      const container = document.getElementById("search-results");
+      const q = query.trim().toLowerCase();
+
+      const matches = POSTS.filter(p => {
+        if (!q) return true;
+        return (
+          p.title.toLowerCase().includes(q) ||
+          p.summary.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.tags.some(t => t.toLowerCase().includes(q)) ||
+          p.content.toLowerCase().includes(q)
+        );
+      });
+
+      if (!matches.length) {
+        container.innerHTML = `<div class="py-10 text-center text-sm text-slate-400">未找到包含「${escapeHtml(query)}」的文章</div>`;
+        return;
+      }
+
+      const highlightMatch = (text) => {
+        const safe = escapeHtml(text);
+        if (!q) return safe;
+        const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return safe.replace(new RegExp(`(${escapedQ})`, "gi"), `<mark class="bg-blue-500/20 text-blue-600 dark:text-sky-300 rounded px-0.5">$1</mark>`);
+      };
+
+      container.innerHTML = matches.map(p => `
+        <a href="#post/${p.slug}" class="search-result-item block px-3.5 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <span class="font-semibold text-sm text-slate-900 dark:text-white">${highlightMatch(p.title)}</span>
+            <span class="text-xs font-mono text-slate-400 shrink-0">${p.date}</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${highlightMatch(p.summary)}</p>
+        </a>
+      `).join("");
+
+      container.querySelectorAll(".search-result-item").forEach(a => {
+        a.addEventListener("click", closeSearchModal);
+      });
+    }
+
+    /* =======================================================================
+       十三、在线 Markdown 编辑器 & JS 对象生成器
+       ======================================================================= */
+    const DEFAULT_EDITOR_MD = `## 1. 背景与问题描述
+
+在这里用 Markdown 撰写你的技术笔记，支持 **粗体**、行内代码 \`cv::Mat\`、表格与数学公式：
+
+$$RMSE = \\sqrt{\\frac{1}{N} \\sum (p_i - \\hat{p}_i)^2}$$
+
+## 2. 核心代码片段
+
+${FENCE}cpp
+#include <iostream>
+
+int main() {
+    std::cout << "Hello OdeOfFate's Blog!" << std::endl;
+    return 0;
+}
+${FENCE}
+
+> **提示**：写完后点击右上角「复制 JS 对象代码」，粘贴到源码的 \`POSTS\` 数组开头即可发布。`;
+
+    function initEditorModal() {
+      const textarea = document.getElementById("ed-markdown");
+      const previewOut = document.getElementById("ed-preview-out");
+      const wordCountEl = document.getElementById("ed-word-count");
+
+      textarea.value = DEFAULT_EDITOR_MD;
+
+      const updatePreview = () => {
+        const md = textarea.value;
+        const { html } = renderMarkdown(md);
+        previewOut.innerHTML = html;
+        bindCopyButtons(previewOut);
+        wordCountEl.textContent = `${getPostMetrics(md).chars} 字`;
+      };
+
+      textarea.addEventListener("input", updatePreview);
+      updatePreview();
+
+      // 移动端编辑/预览切换
+      const tabWrite = document.getElementById("tab-ed-write");
+      const tabPreview = document.getElementById("tab-ed-preview");
+      const paneWrite = document.getElementById("pane-ed-write");
+      const panePreview = document.getElementById("pane-ed-preview");
+
+      tabWrite.addEventListener("click", () => {
+        paneWrite.classList.remove("hidden");
+        panePreview.classList.add("hidden");
+        tabWrite.className = "flex-1 py-2.5 text-blue-600 border-b-2 border-blue-600";
+        tabPreview.className = "flex-1 py-2.5 text-slate-500";
+      });
+      tabPreview.addEventListener("click", () => {
+        paneWrite.classList.add("hidden");
+        panePreview.classList.remove("hidden");
+        tabPreview.className = "flex-1 py-2.5 text-blue-600 border-b-2 border-blue-600";
+        tabWrite.className = "flex-1 py-2.5 text-slate-500";
+        updatePreview();
+      });
+
+      // 生成标准 POSTS 数组对象并复制
+      document.getElementById("btn-copy-post-obj").addEventListener("click", () => {
+        const title = document.getElementById("ed-title").value.trim() || "未命名文章";
+        const category = document.getElementById("ed-category").value.trim() || "技术笔记";
+        const tags = document.getElementById("ed-tags").value
+          .split(/[,，]/)
+          .map(t => t.trim())
+          .filter(Boolean);
+        const cover = document.getElementById("ed-cover").value;
+        const summary = document.getElementById("ed-summary").value.trim() || "文章摘要";
+        const date = document.getElementById("ed-date").value || new Date().toISOString().slice(0, 10);
+        const slug = "post-" + date.replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6);
+
+        // 安全序列化为标准 JSON 格式对象（可直接粘贴进 POSTS 数组，无需手动处理反引号转义）
+        const obj = {
+          slug,
+          title,
+          date,
+          category,
+          tags: tags.length ? tags : ["技术"],
+          cover,
+          summary,
+          content: textarea.value
+        };
+        const codeSnippet = JSON.stringify(obj, null, 2) + ",";
+        safeCopyText(codeSnippet, "已复制 POSTS 对象代码！可直接粘贴到 index.html 的 POSTS 数组开头");
+      });
+    }
+
+    function openEditorModal() {
+      document.getElementById("editor-modal").classList.remove("hidden");
+    }
+    function closeEditorModal() {
+      document.getElementById("editor-modal").classList.add("hidden");
+    }
+
+    /* =======================================================================
+       十四、滚动监听（Sticky Navbar 变色 & 返回顶部按钮）与全局初始化
+       ======================================================================= */
+    function handleScroll() {
+      const navbar = document.getElementById("navbar");
+      const backTop = document.getElementById("btn-back-top");
+      const scrolled = window.scrollY > 64;
+
+      navbar.classList.toggle("navbar-scrolled", scrolled);
+      navbar.classList.toggle("navbar-transparent", !scrolled);
+
+      if (window.scrollY > 380) {
+        backTop.classList.remove("opacity-0", "pointer-events-none", "translate-y-3");
+      } else {
+        backTop.classList.add("opacity-0", "pointer-events-none", "translate-y-3");
+      }
+    }
+
+    window.addEventListener("load", () => {
+      // 同步站点名称与页脚年份
+      document.getElementById("nav-brand-title").textContent = SITE_CONFIG.siteName;
+      document.getElementById("footer-year").textContent = new Date().getFullYear();
+
+      initTheme();
+      initHeroCanvas();
+      initEditorModal();
+      handleRoute();
+      handleScroll();
+
+      // 事件绑定
+      window.addEventListener("hashchange", handleRoute);
+      window.addEventListener("scroll", handleScroll, { passive: true });
+
+      document.getElementById("btn-toggle-theme").addEventListener("click", () => {
+        applyTheme(!document.documentElement.classList.contains("dark"));
+      });
+
+      document.getElementById("hero-scroll-btn").addEventListener("click", () => {
+        document.getElementById("main-anchor").scrollIntoView({ behavior: "smooth" });
+      });
+
+      document.getElementById("btn-back-top").addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      // 搜索弹窗
+      document.getElementById("btn-open-search").addEventListener("click", openSearchModal);
+      document.getElementById("btn-close-search").addEventListener("click", closeSearchModal);
+      document.getElementById("search-backdrop").addEventListener("click", closeSearchModal);
+      document.getElementById("search-input").addEventListener("input", (e) => renderSearchResults(e.target.value));
+
+      // 编辑器弹窗
+      document.getElementById("btn-open-editor").addEventListener("click", openEditorModal);
+      document.getElementById("btn-footer-editor").addEventListener("click", openEditorModal);
+      document.getElementById("btn-close-editor").addEventListener("click", closeEditorModal);
+      document.getElementById("editor-backdrop").addEventListener("click", closeEditorModal);
+
+      // 移动端抽屉
+      const drawer = document.getElementById("mobile-drawer");
+      const closeDrawer = () => drawer.classList.add("hidden");
+      document.getElementById("btn-mobile-menu").addEventListener("click", () => drawer.classList.remove("hidden"));
+      document.getElementById("btn-close-mobile").addEventListener("click", closeDrawer);
+      document.getElementById("mobile-drawer-backdrop").addEventListener("click", closeDrawer);
+      drawer.querySelectorAll(".mobile-nav-item").forEach(a => a.addEventListener("click", closeDrawer));
+      document.getElementById("btn-mobile-editor").addEventListener("click", () => {
+        closeDrawer();
+        openEditorModal();
+      });
+
+      // 全局快捷键 Ctrl/Cmd + K 与 ESC
+      window.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+          e.preventDefault();
+          openSearchModal();
+        } else if (e.key === "Escape") {
+          closeSearchModal();
+          closeEditorModal();
+          closeDrawer();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
