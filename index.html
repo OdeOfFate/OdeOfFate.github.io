@@ -38,6 +38,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./assets/robot-hero.css" />
 
   <style>
     /* =====================================================================
@@ -83,30 +84,6 @@
       background-color: rgba(24, 28, 39, 0.92);
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
       color: #e2e8f0;
-    }
-
-    /* 打字机光标闪烁 */
-    @keyframes blinkCursor {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-    .typing-cursor {
-      display: inline-block;
-      width: 2px;
-      height: 1.15em;
-      background-color: #38bdf8;
-      margin-left: 4px;
-      vertical-align: -0.15em;
-      animation: blinkCursor 0.9s infinite;
-    }
-
-    /* 向下箭头微动效 */
-    @keyframes floatDown {
-      0%, 100% { transform: translateY(0); opacity: 0.75; }
-      50% { transform: translateY(8px); opacity: 1; }
-    }
-    .animate-float-down {
-      animation: floatDown 2s ease-in-out infinite;
     }
 
     /* 视图切换淡入 */
@@ -391,11 +368,11 @@
   <!-- =====================================================================
        1. 顶部固定导航栏 (Sticky Navbar)
        ===================================================================== -->
-  <header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 transition-all duration-300 navbar-transparent">
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 transition-all duration-300 navbar-transparent robot-home-nav">
     <div class="max-w-6xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between">
       <!-- 左侧 Logo 与站点名称 -->
       <a href="#home" class="flex items-center gap-2.5 group focus:outline-none">
-        <span class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+        <span class="nav-prism w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
           <!-- 极简科技棱镜 Logo -->
           <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
@@ -495,28 +472,34 @@
   </div>
 
   <!-- =====================================================================
-       2. 首屏全宽 Hero Banner (Canvas 科技粒子网格 + 动态内容)
+       2. 首页轮腿步兵展台与博客子页横幅
        ===================================================================== -->
-  <section id="hero-banner" class="relative w-full min-h-[480px] h-[72vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300">
-    <!-- 科技感粒子连线与透视网格 Canvas -->
-    <canvas id="hero-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
-
-    <!-- 柔和径向光晕与底部遮罩 -->
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.12)_0%,rgba(8,17,31,0.55)_75%)] pointer-events-none"></div>
-    <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/35 to-transparent pointer-events-none"></div>
-
-    <!-- Hero 动态文字区（随路由在首页/文章页/子页之间切换） -->
-    <div id="hero-content" class="relative z-10 max-w-4xl mx-auto px-5 text-center text-white pt-10">
-      <!-- 由 JS 动态渲染 -->
+  <section id="hero-banner" class="robot-home">
+    <div id="robot-hero" class="robot-hero">
+      <div class="robot-copy">
+        <h1 class="robot-title">
+          <span id="robot-title-name">RoboMaster</span>
+          <span class="robot-title-cn">轮腿步兵</span>
+        </h1>
+        <p id="robot-subtitle" class="robot-subtitle">Computer Vision · Robotics · Edge Deployment</p>
+        <button id="hero-scroll-btn" class="robot-article-link" type="button">浏览文章</button>
+      </div>
+      <figure id="robot-stage" class="robot-stage">
+        <div class="robot-viewport">
+          <img class="robot-poster" src="./assets/robot-poster.webp" alt="RoboMaster 轮腿步兵的白色粒子线稿" width="960" height="960" decoding="async" />
+          <canvas class="robot-canvas" aria-label="RoboMaster 轮腿步兵三维线稿，聚焦后可用方向键旋转" aria-describedby="robot-controls"></canvas>
+        </div>
+        <figcaption id="robot-controls" class="robot-controls" hidden>
+          <span class="robot-mouse-hint">移动鼠标拨散粒子 · 右键拖动旋转</span>
+          <span class="robot-touch-hint">单指拖动旋转</span>
+          <button class="robot-reset" type="button">复位视角</button>
+        </figcaption>
+      </figure>
     </div>
-
-    <!-- 首页平滑向下滚动箭头 -->
-    <button id="hero-scroll-btn" type="button" aria-label="向下浏览内容"
-      class="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-10 p-3 text-white/75 hover:text-white transition-colors animate-float-down">
-      <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-    </button>
+    <canvas id="hero-canvas" class="hero-secondary absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
+    <div class="hero-secondary absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.12)_0%,rgba(8,17,31,0.55)_75%)] pointer-events-none"></div>
+    <div class="hero-secondary absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/35 to-transparent pointer-events-none"></div>
+    <div id="hero-content" class="hero-secondary relative z-10 max-w-4xl mx-auto px-5 text-center text-white pt-10"></div>
   </section>
 
   <!-- =====================================================================
@@ -663,12 +646,8 @@
        ======================================================================= */
     const SITE_CONFIG = {
       siteName: "OdeOfFate's Blog",
-      heroTitle: "OdeOfFate",
-      subtitles: [
-        "Computer Vision · Robotics · Edge Deployment",
-        "探索机器视觉、三维重建与嵌入式算法工程",
-        "Code is cheap, show me the reprojection error."
-      ],
+      heroTitle: "RoboMaster",
+      heroSubtitle: "Computer Vision · Robotics · Edge Deployment",
       author: {
         name: "OdeOfFate",
         role: "Robotics & Computer Vision Engineer",
@@ -1111,7 +1090,7 @@ ${FENCE}
 打开 \`index.html\`，搜索 \`const SITE_CONFIG\`，你可以直接修改以下字段：
 
 - **siteName / heroTitle**：修改左上角站点名称和首屏大标题。
-- **subtitles**：修改首屏打字机循环播放的标语数组，支持增删任意条数。
+- **heroSubtitle**：修改首屏标题下方的博客简介。
 - **author**：修改「关于」页面中的个人简介、技能标签（\`skills\`）和代表项目卡片（\`projects\`）。
 
 ---
@@ -1628,12 +1607,13 @@ ${FENCE}
     /* =======================================================================
        七、Hero Banner Canvas 科技网格与粒子连线微动效
        ======================================================================= */
-    let heroCanvasCleanup = null;
+    let setSecondaryHeroActive = () => {};
     function initHeroCanvas() {
       const canvas = document.getElementById("hero-canvas");
       const banner = document.getElementById("hero-banner");
       if (!canvas || !banner) return;
       const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
       let width = 0, height = 0, dpr = 1;
       let particles = [];
@@ -1727,59 +1707,28 @@ ${FENCE}
       }
 
       const onMouseMove = (e) => {
+        if (animId === null) return;
         const rect = banner.getBoundingClientRect();
         mouse.x = e.clientX - rect.left;
         mouse.y = e.clientY - rect.top;
       };
       const onMouseLeave = () => { mouse.x = null; mouse.y = null; };
 
-      window.addEventListener("resize", resize);
+      window.addEventListener("resize", () => {
+        if (animId !== null) resize();
+      });
       banner.addEventListener("mousemove", onMouseMove);
       banner.addEventListener("mouseleave", onMouseLeave);
-      resize();
-      frame();
-
-      heroCanvasCleanup = () => {
-        cancelAnimationFrame(animId);
-        window.removeEventListener("resize", resize);
-      };
-    }
-
-    /* =======================================================================
-       八、打字机循环动效控制器（仅首页 Hero 启用）
-       ======================================================================= */
-    let typingTimer = null;
-    function startTypewriter(elId, texts) {
-      if (typingTimer) clearTimeout(typingTimer);
-      let idx = 0, charIdx = 0, deleting = false;
-
-      function tick() {
-        const el = document.getElementById(elId);
-        if (!el) return;
-        const current = texts[idx];
-
-        if (!deleting) {
-          charIdx++;
-          el.textContent = current.slice(0, charIdx);
-          if (charIdx === current.length) {
-            deleting = true;
-            typingTimer = setTimeout(tick, 2200);
-            return;
-          }
-          typingTimer = setTimeout(tick, 62);
-        } else {
-          charIdx--;
-          el.textContent = current.slice(0, charIdx);
-          if (charIdx === 0) {
-            deleting = false;
-            idx = (idx + 1) % texts.length;
-            typingTimer = setTimeout(tick, 420);
-            return;
-          }
-          typingTimer = setTimeout(tick, 34);
+      setSecondaryHeroActive = (active) => {
+        if (active) {
+          resize();
+          if (animId === null) animId = requestAnimationFrame(frame);
+        } else if (animId !== null) {
+          cancelAnimationFrame(animId);
+          animId = null;
+          onMouseLeave();
         }
-      }
-      tick();
+      };
     }
 
     /* =======================================================================
@@ -1804,31 +1753,34 @@ ${FENCE}
     /* =======================================================================
        十、各视图渲染器 (Home / Post / Archives / Categories / Tags / About)
        ======================================================================= */
-    function setHeroLayout(mode, htmlContent) {
+    let robotHero = null;
+
+    function setHeroLayout(mode, htmlContent = "") {
       const banner = document.getElementById("hero-banner");
       const heroContent = document.getElementById("hero-content");
-      const scrollBtn = document.getElementById("hero-scroll-btn");
       const mainContainer = document.getElementById("main-container");
+      const isHome = mode === "home";
 
-      if (typingTimer) clearTimeout(typingTimer);
+      document.getElementById("robot-hero").hidden = !isHome;
+      document.getElementById("navbar").classList.toggle("robot-home-nav", isHome);
 
-      if (mode === "home") {
-        banner.className = "relative w-full min-h-[470px] h-[72vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300";
-        scrollBtn.classList.remove("hidden");
+      if (isHome) {
+        banner.className = "robot-home";
         mainContainer.className = "max-w-5xl mx-auto transition-all duration-300";
+        robotHero ??= import("./assets/robot-hero.js")
+          .then(({ mountRobotHero }) => mountRobotHero(document.getElementById("robot-stage")))
+          .catch(() => null);
       } else if (mode === "post") {
         banner.className = "relative w-full min-h-[340px] h-[48vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300";
-        scrollBtn.classList.add("hidden");
         mainContainer.className = "max-w-6xl mx-auto transition-all duration-300";
       } else {
         banner.className = "relative w-full min-h-[300px] h-[42vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#08111f] via-[#12233d] to-[#1a3354] transition-all duration-300";
-        scrollBtn.classList.add("hidden");
         mainContainer.className = "max-w-5xl mx-auto transition-all duration-300";
       }
 
       heroContent.innerHTML = htmlContent;
-      // 触发 Canvas 适应新高度
-      window.dispatchEvent(new Event("resize"));
+      setSecondaryHeroActive(!isHome);
+      robotHero?.then(scene => scene?.setActive(state.route === "home"));
     }
 
     function updateNavActive(route) {
@@ -1844,17 +1796,9 @@ ${FENCE}
      */
     function renderHomeView() {
       document.title = SITE_CONFIG.siteName;
-      setHeroLayout("home", `
-        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-xs sm:text-sm text-sky-200 font-mono mb-5 backdrop-blur-sm">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>odeoffate.github.io</span>
-        </div>
-        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-sm">${escapeHtml(SITE_CONFIG.heroTitle)}</h1>
-        <p class="text-base sm:text-xl text-slate-200/90 font-normal min-h-[1.8em]">
-          <span id="hero-typing"></span><span class="typing-cursor"></span>
-        </p>
-      `);
-      startTypewriter("hero-typing", SITE_CONFIG.subtitles);
+      document.getElementById("robot-title-name").textContent = SITE_CONFIG.heroTitle;
+      document.getElementById("robot-subtitle").textContent = SITE_CONFIG.heroSubtitle;
+      setHeroLayout("home");
 
       const stats = getBlogStats();
       let list = [...POSTS].sort((a, b) => b.date.localeCompare(a.date));
@@ -2671,7 +2615,8 @@ ${FENCE}
       });
 
       document.getElementById("hero-scroll-btn").addEventListener("click", () => {
-        document.getElementById("main-anchor").scrollIntoView({ behavior: "smooth" });
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.getElementById("main-anchor").scrollIntoView({ behavior: reduceMotion ? "instant" : "smooth" });
       });
 
       document.getElementById("btn-back-top").addEventListener("click", () => {
