@@ -38,7 +38,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./assets/robot-hero.css" />
+  <link rel="stylesheet" href="./assets/robot-hero.css?v=2" />
 
   <style>
     /* =====================================================================
@@ -486,7 +486,7 @@
       </div>
       <figure id="robot-stage" class="robot-stage">
         <div class="robot-viewport">
-          <img class="robot-poster" src="./assets/robot-poster.webp" alt="RoboMaster 轮腿步兵的白色粒子线稿" width="960" height="960" decoding="async" />
+          <img class="robot-poster" src="./assets/robot-poster.webp?v=2" alt="RoboMaster 轮腿步兵的白色粒子线稿" width="960" height="960" decoding="async" />
           <canvas class="robot-canvas" aria-label="RoboMaster 轮腿步兵三维线稿，聚焦后可用方向键旋转" aria-describedby="robot-controls"></canvas>
         </div>
         <figcaption id="robot-controls" class="robot-controls" hidden>
@@ -1767,7 +1767,7 @@ ${FENCE}
       if (isHome) {
         banner.className = "robot-home";
         mainContainer.className = "max-w-5xl mx-auto transition-all duration-300";
-        robotHero ??= import("./assets/robot-hero.js?v=3")
+        robotHero ??= import("./assets/robot-hero.js?v=4")
           .then(({ mountRobotHero }) => mountRobotHero(document.getElementById("robot-stage")))
           .catch(() => null);
       } else if (mode === "post") {
