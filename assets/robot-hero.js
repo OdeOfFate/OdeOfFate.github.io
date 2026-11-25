@@ -1,4 +1,4 @@
-const POINT_FILE = new URL("./robot-particles.bin?v=2", import.meta.url);
+const POINT_FILE = new URL("./robot-particles.bin", import.meta.url);
 // Each point carries a mask for exterior visibility and one for silhouette emphasis.
 const VIEW_COUNT = 32;
 const POINT_STRIDE = 16;
@@ -6,7 +6,6 @@ const HEADER_BYTES = 8 + VIEW_COUNT * 3 * 4;
 const MODEL_FRAME = 2.76;
 const TRAIL_COUNT = 9;
 const TRAIL_LIFETIME = 580;
-const HOVER_IDLE_DELAY = 220;
 
 const vertexSource = `#version 300 es
 precision highp float;
@@ -48,33 +47,29 @@ void main() {
 
   vec2 scatter = vec2(0.0);
   float strongest = 0.0;
-  float total = 0.0;
-  float angle = seed * 6.2831853;
-  vec2 jitter = vec2(cos(angle), sin(angle)) * 2.0;
   for (int i = 0; i < 9; i++) {
     vec4 pointer = uTrail[i];
     if (pointer.z <= 0.0) continue;
     vec2 delta = pixel - pointer.xy;
-    float influence = pointer.z * (1.0 - smoothstep(0.0, uScatterRadius, length(delta)));
-    if (influence <= 0.0) continue;
-    vec2 shifted = delta + jitter;
-    vec2 direction = shifted / max(length(shifted), 0.01);
-    vec2 sideways = vec2(-direction.y, direction.x);
-    float push = influence * sqrt(influence);
-    scatter += (direction + sideways * (0.15 + 0.52 * seed)) * push;
-    total += push;
-    strongest = max(strongest, influence);
+    float distance = length(delta);
+    float influence = pointer.z * (1.0 - smoothstep(uScatterRadius * 0.12, uScatterRadius, distance));
+    if (influence > strongest) {
+      float angle = seed * 6.2831853;
+      vec2 direction = normalize(delta + vec2(cos(angle), sin(angle)) * 2.0);
+      vec2 sideways = vec2(-direction.y, direction.x);
+      scatter = (direction + sideways * (seed - 0.5) * 1.06)
+        * uScatterRadius * influence * (0.48 + seed * 0.58);
+      strongest = influence;
+    }
   }
-  pixel += scatter * uScatterRadius * (0.17 + 0.39 * seed) / max(1.0, total);
+  pixel += scatter;
 
   float strength = aAppearance.x;
-  float flare = pow(seed, 14.0);
-  float diameter = mix(1.95, 2.66, smoothstep(0.12, 0.72, strength)) + alongEdge * 0.14 + flare * 0.31;
-  float sizeOnScreen = clamp(sqrt(uScale / 230.0), 0.78, 1.15);
-  gl_PointSize = diameter * sizeOnScreen * uPixelRatio * sqrt(perspective);
-  float light = 0.76 + 0.24 * smoothstep(-1.0, 0.9, p.z);
-  vOpacity = (strength * (0.63 + 0.48 * seed) + alongEdge * 0.045 + flare * 0.12)
-    * light * pow(visibility, 1.12) * (1.0 - strongest * 0.14);
+  float diameter = mix(2.55, 3.78, strength) + alongEdge * 0.24;
+  float sizeOnScreen = clamp(sqrt(uScale / 220.0), 0.68, 1.0);
+  gl_PointSize = diameter * sizeOnScreen * uPixelRatio * (0.94 + seed * 0.16) * sqrt(perspective);
+  vOpacity = max(0.12, strength * 1.17 + alongEdge * 0.12)
+    * pow(visibility, 1.15) * (1.0 - strongest * 0.18);
   gl_Position = vec4(pixel / uViewport * vec2(2.0, -2.0) + vec2(-1.0, 1.0), 0.0, 1.0);
 }
 `;
@@ -87,9 +82,9 @@ out vec4 color;
 
 void main() {
   float radius = length(gl_PointCoord * 2.0 - vec2(1.0));
-  float core = 1.0 - smoothstep(0.16, 0.60, radius);
-  float halo = 1.0 - smoothstep(0.28, 1.0, radius);
-  color = vec4(vec3(1.0), vOpacity * (0.93 * core + 0.07 * halo));
+  float core = 1.0 - smoothstep(0.17, 0.53, radius);
+  float halo = 1.0 - smoothstep(0.26, 1.0, radius);
+  color = vec4(vec3(1.0), vOpacity * (0.90 * core + 0.10 * halo));
 }
 `;
 
@@ -235,19 +230,9 @@ export function mountRobotHero(stage) {
     requestFrame();
   }
 
-  function hoverStrength(point, time) {
-    const settling = time - point.movedAt - HOVER_IDLE_DELAY;
-    if (settling <= 0) return 1;
-    if (reducedMotion.matches) return 0;
-    const progress = Math.min(1, settling / TRAIL_LIFETIME);
-    return 1 - progress * progress * (3 - 2 * progress);
-  }
-
   function remember(point, time) {
     if (!point || reducedMotion.matches) return;
-    const strength = hoverStrength(point, time);
-    if (strength <= 0) return;
-    trail.unshift({ x: point.x, y: point.y, time, strength });
+    trail.unshift({ ...point, time });
     if (trail.length >= TRAIL_COUNT) trail.pop();
   }
 
@@ -273,27 +258,25 @@ export function mountRobotHero(stage) {
     blendViews(directions, matrix, viewIndices, viewWeights);
     while (trail.length && timestamp - trail.at(-1).time >= TRAIL_LIFETIME) trail.pop();
     trailUniform.fill(0);
-    const strength = pointer ? hoverStrength(pointer, timestamp) : 0;
-    if (strength > 0) trailUniform.set([pointer.x, pointer.y, strength], 0);
+    if (pointer) trailUniform.set([pointer.x, pointer.y, 1], 0);
     trail.forEach((sample, index) => {
       const life = Math.min(1, 1 - (timestamp - sample.time) / TRAIL_LIFETIME);
-      trailUniform.set([sample.x, sample.y, sample.strength * life * life * 0.86], (index + 1) * 4);
+      trailUniform.set([sample.x, sample.y, life * life * 0.86], (index + 1) * 4);
     });
 
     gl.viewport(0, 0, pixelsWide, pixelsHigh);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniformMatrix3fv(uniforms.Rotation, false, matrix);
     gl.uniform2f(uniforms.Viewport, width, height);
-    const scale = Math.min(width, height) / MODEL_FRAME;
-    gl.uniform1f(uniforms.Scale, scale);
+    gl.uniform1f(uniforms.Scale, Math.min(width, height) / MODEL_FRAME);
     gl.uniform1f(uniforms.PixelRatio, pixelRatio);
-    gl.uniform1f(uniforms.ScatterRadius, Math.min(94, Math.max(44, scale * 0.40)));
+    gl.uniform1f(uniforms.ScatterRadius, Math.min(92, Math.max(43, width * 0.12)));
     gl.uniform4uiv(uniforms.ViewIndices, viewIndices);
     gl.uniform4fv(uniforms.ViewWeights, viewWeights);
     gl.uniform4fv(uniforms.Trail, trailUniform);
     gl.drawArrays(gl.POINTS, 0, count);
     showCanvas(true);
-    if (strength > 0 || trail.length) requestFrame();
+    if (trail.length) requestFrame();
   }
 
   function finishDrag() {
@@ -330,13 +313,11 @@ export function mountRobotHero(stage) {
       rotate(point.x - drag.x, point.y - drag.y);
       Object.assign(drag, point);
     } else if (event.pointerType === "mouse") {
-      if (pointer && pointer.x === point.x && pointer.y === point.y) return;
-      const now = performance.now();
       const recent = trail[0];
       if (!recent || Math.hypot(recent.x - point.x, recent.y - point.y) >= 13) {
-        remember(pointer, now);
+        remember(pointer, performance.now());
       }
-      pointer = { ...point, movedAt: now };
+      pointer = point;
       requestFrame();
     }
   });

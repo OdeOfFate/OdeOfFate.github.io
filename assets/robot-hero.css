@@ -2,8 +2,8 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  color: #f5f5f5;
-  background: #000;
+  color: #f6f6f6;
+  background: #050505;
 }
 
 #hero-banner.robot-home .hero-secondary,
@@ -11,84 +11,77 @@
   display: none;
 }
 
-#hero-banner.robot-home + #main-anchor {
-  margin-top: 0;
-  padding-top: clamp(1rem, 3vw, 2rem);
-  scroll-margin-top: var(--nav-height);
-}
-
 #navbar.robot-home-nav.navbar-transparent {
-  background: linear-gradient(180deg, #000 0%, #000b 66%, #0000 100%);
+  background: linear-gradient(180deg, #050505 0%, #050505d9 66%, #05050500 100%);
 }
 
 #navbar.robot-home-nav.navbar-transparent .nav-prism {
-  background: #171717;
+  background: #212121;
   box-shadow: inset 0 0 0 1px #ffffff28;
 }
 
 .robot-hero {
-  --hero-gutter: clamp(1.5rem, 5.75vw, 6.5rem);
-  --hero-bottom: clamp(1.75rem, 5.4svh, 4.25rem);
-  position: relative;
-  min-height: 42rem;
-  min-height: max(39rem, 100svh);
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.68fr) minmax(0, 1.32fr);
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 2rem);
+  max-width: 89rem;
+  min-height: 45rem;
+  min-height: clamp(43.5rem, 92svh, 58rem);
+  margin-inline: auto;
+  padding: 5.75rem clamp(1.5rem, 6.2vw, 6rem) 6.5rem;
 }
 
 .robot-copy {
-  position: absolute;
+  position: relative;
   z-index: 1;
-  bottom: var(--hero-bottom);
-  inset-inline-start: var(--hero-gutter);
-  pointer-events: none;
+  padding-bottom: 0.75rem;
 }
 
 .robot-title {
   margin: 0;
-  color: #efefef;
-  font-size: clamp(2.05rem, 3.2vw, 3.35rem);
-  font-weight: 400;
-  letter-spacing: -0.04em;
-  line-height: 1.12;
+  color: #fafafa;
+  font-size: clamp(2.9rem, 5vw, 5.3rem);
+  font-weight: 800;
+  letter-spacing: -0.075em;
+  line-height: 0.99;
 }
 
 .robot-title-cn {
-  display: inline-block;
-  margin-inline-start: 0.45em;
-  color: #d1d1d1;
-  font-size: 0.5em;
-  font-weight: 400;
-  letter-spacing: 0.075em;
-  vertical-align: 0.16em;
+  display: block;
+  margin-top: 0.32em;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  line-height: 1.15;
 }
 
 .robot-subtitle {
-  margin-top: 0.6rem;
-  color: #929292;
-  font-size: 0.875rem;
-  line-height: 1.55;
-}
-
-.robot-article-link,
-.robot-controls button {
-  min-height: 2.55rem;
-  padding: 0.35rem 0.88rem;
-  border: 1px solid #ffffff38;
-  border-radius: 0.38rem;
-  background: #080808;
-  color: #e9e9e9;
-  font-size: 0.875rem;
-  pointer-events: auto;
-  transition: background-color 180ms ease, border-color 180ms ease;
+  margin-top: 1.45rem;
+  color: #aaa;
+  font-size: 0.96rem;
+  line-height: 1.6;
 }
 
 .robot-article-link {
-  margin-top: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  margin-top: 1.55rem;
+  padding: 0.55rem 1.15rem;
+  border: 1px solid #ffffff35;
+  border-radius: 0.45rem;
+  background: #111;
+  color: #f5f5f5;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
-.robot-article-link:hover,
-.robot-controls button:hover {
-  border-color: #ffffff73;
-  background: #171717;
+.robot-article-link:hover {
+  border-color: #ffffff67;
+  background: #222;
 }
 
 .robot-article-link:focus-visible,
@@ -98,19 +91,28 @@
   outline-offset: 4px;
 }
 
-.robot-canvas:focus-visible {
-  outline-offset: -4px;
-}
-
 .robot-stage {
-  position: absolute;
-  inset: 0;
+  min-width: 0;
   margin: 0;
 }
 
 .robot-viewport {
+  position: relative;
+  width: 100%;
+  height: min(42rem, 69svh);
+  min-height: 26rem;
+  background: radial-gradient(ellipse at 50% 46%, #131313 0%, #0b0b0b 43%, #050505 73%);
+}
+
+.robot-viewport::before {
   position: absolute;
-  inset: 0 0 2.75rem;
+  inset: 0;
+  background-image: radial-gradient(circle, #ffffff36 0.7px, transparent 0.95px);
+  background-size: 29px 29px;
+  mask-image: radial-gradient(ellipse at 50% 49%, #000 8%, transparent 73%);
+  opacity: 0.36;
+  pointer-events: none;
+  content: "";
 }
 
 .robot-poster,
@@ -148,19 +150,35 @@
 }
 
 .robot-controls {
-  position: absolute;
-  z-index: 2;
-  bottom: var(--hero-bottom);
-  inset-inline-end: var(--hero-gutter);
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  color: #a3a3a3;
+  justify-content: center;
+  gap: 0.9rem;
+  min-height: 2.375rem;
+  margin-top: 0.15rem;
+  color: #adadad;
   font-size: 0.8125rem;
   line-height: 1.45;
 }
 
-.robot-controls[hidden],
+.robot-controls[hidden] {
+  display: flex;
+  visibility: hidden;
+}
+
+.robot-controls button {
+  min-height: 2.35rem;
+  padding-inline: 0.66rem;
+  border: 1px solid #ffffff2e;
+  border-radius: 0.35rem;
+  color: #dbdbdb;
+}
+
+.robot-controls button:hover {
+  border-color: #ffffff65;
+  background: #151515;
+}
+
 .robot-touch-hint {
   display: none;
 }
@@ -175,41 +193,51 @@
   }
 }
 
-@media (max-width: 55rem) {
+@media (max-width: 49rem) {
   .robot-hero {
-    --hero-gutter: 1.05rem;
-    --hero-bottom: clamp(1.15rem, 3.2svh, 2rem);
-    min-height: max(36rem, 100svh);
-  }
-
-  .robot-viewport {
-    inset: 4rem var(--hero-gutter) 11rem;
-  }
-
-  .robot-copy {
-    inset-inline: var(--hero-gutter);
-    bottom: calc(var(--hero-bottom) + 3.45rem);
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.75rem;
+    min-height: 0;
+    padding: 6rem 1.15rem 5.25rem;
     text-align: center;
   }
 
+  .robot-copy {
+    padding-bottom: 0;
+  }
+
   .robot-title {
-    font-size: clamp(1.9rem, 7vw, 2.85rem);
+    font-size: clamp(2.85rem, 10vw, 4.25rem);
+  }
+
+  .robot-title-cn {
+    margin-top: 0.25em;
+  }
+
+  .robot-subtitle {
+    margin-top: 0.85rem;
+    font-size: 0.85rem;
   }
 
   .robot-article-link {
-    margin-top: 0.8rem;
+    margin-top: 0.95rem;
   }
 
-  .robot-controls {
-    inset-inline: var(--hero-gutter);
-    justify-content: center;
-    gap: 0.72rem;
+  .robot-stage {
+    width: 100%;
+    max-width: 37rem;
+  }
+
+  .robot-viewport {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 1.09;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .robot-article-link,
-  .robot-controls button {
+  .robot-article-link {
     transition: none;
   }
 }
