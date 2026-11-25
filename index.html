@@ -1767,7 +1767,7 @@ ${FENCE}
       if (isHome) {
         banner.className = "robot-home";
         mainContainer.className = "max-w-5xl mx-auto transition-all duration-300";
-        robotHero ??= import("./assets/robot-hero.js?v=2")
+        robotHero ??= import("./assets/robot-hero.js?v=3")
           .then(({ mountRobotHero }) => mountRobotHero(document.getElementById("robot-stage")))
           .catch(() => null);
       } else if (mode === "post") {

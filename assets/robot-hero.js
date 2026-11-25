@@ -6,6 +6,7 @@ const HEADER_BYTES = 8 + VIEW_COUNT * 3 * 4;
 const MODEL_FRAME = 2.76;
 const TRAIL_COUNT = 9;
 const TRAIL_LIFETIME = 580;
+const HOVER_IDLE_DELAY = 220;
 
 const vertexSource = `#version 300 es
 precision highp float;
@@ -230,9 +231,19 @@ export function mountRobotHero(stage) {
     requestFrame();
   }
 
+  function hoverStrength(point, time) {
+    const settling = time - point.movedAt - HOVER_IDLE_DELAY;
+    if (settling <= 0) return 1;
+    if (reducedMotion.matches) return 0;
+    const progress = Math.min(1, settling / TRAIL_LIFETIME);
+    return 1 - progress * progress * (3 - 2 * progress);
+  }
+
   function remember(point, time) {
     if (!point || reducedMotion.matches) return;
-    trail.unshift({ ...point, time });
+    const strength = hoverStrength(point, time);
+    if (strength <= 0) return;
+    trail.unshift({ x: point.x, y: point.y, time, strength });
     if (trail.length >= TRAIL_COUNT) trail.pop();
   }
 
@@ -258,10 +269,11 @@ export function mountRobotHero(stage) {
     blendViews(directions, matrix, viewIndices, viewWeights);
     while (trail.length && timestamp - trail.at(-1).time >= TRAIL_LIFETIME) trail.pop();
     trailUniform.fill(0);
-    if (pointer) trailUniform.set([pointer.x, pointer.y, 1], 0);
+    const strength = pointer ? hoverStrength(pointer, timestamp) : 0;
+    if (strength > 0) trailUniform.set([pointer.x, pointer.y, strength], 0);
     trail.forEach((sample, index) => {
       const life = Math.min(1, 1 - (timestamp - sample.time) / TRAIL_LIFETIME);
-      trailUniform.set([sample.x, sample.y, life * life * 0.86], (index + 1) * 4);
+      trailUniform.set([sample.x, sample.y, sample.strength * life * life * 0.86], (index + 1) * 4);
     });
 
     gl.viewport(0, 0, pixelsWide, pixelsHigh);
@@ -276,7 +288,7 @@ export function mountRobotHero(stage) {
     gl.uniform4fv(uniforms.Trail, trailUniform);
     gl.drawArrays(gl.POINTS, 0, count);
     showCanvas(true);
-    if (trail.length) requestFrame();
+    if (strength > 0 || trail.length) requestFrame();
   }
 
   function finishDrag() {
@@ -313,11 +325,13 @@ export function mountRobotHero(stage) {
       rotate(point.x - drag.x, point.y - drag.y);
       Object.assign(drag, point);
     } else if (event.pointerType === "mouse") {
+      if (pointer && pointer.x === point.x && pointer.y === point.y) return;
+      const now = performance.now();
       const recent = trail[0];
       if (!recent || Math.hypot(recent.x - point.x, recent.y - point.y) >= 13) {
-        remember(pointer, performance.now());
+        remember(pointer, now);
       }
-      pointer = point;
+      pointer = { ...point, movedAt: now };
       requestFrame();
     }
   });
