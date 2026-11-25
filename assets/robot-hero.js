@@ -293,9 +293,8 @@ export function mountRobotHero(stage) {
     requestFrame();
   }
 
-  canvas.addEventListener("contextmenu", event => event.preventDefault());
   canvas.addEventListener("pointerdown", event => {
-    if (drag || (event.pointerType === "mouse" && event.button !== 2)) return;
+    if (drag || (event.pointerType === "mouse" && event.button !== 0)) return;
     event.preventDefault();
     clearPointer();
     drag = { id: event.pointerId, ...position(event) };
@@ -307,6 +306,10 @@ export function mountRobotHero(stage) {
     const point = position(event);
     if (drag) {
       if (drag.id !== event.pointerId) return;
+      if (event.pointerType === "mouse" && (event.buttons & 1) === 0) {
+        finishDrag();
+        return;
+      }
       rotate(point.x - drag.x, point.y - drag.y);
       Object.assign(drag, point);
     } else if (event.pointerType === "mouse") {

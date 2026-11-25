@@ -490,7 +490,7 @@
           <canvas class="robot-canvas" aria-label="RoboMaster 轮腿步兵三维线稿，聚焦后可用方向键旋转" aria-describedby="robot-controls"></canvas>
         </div>
         <figcaption id="robot-controls" class="robot-controls" hidden>
-          <span class="robot-mouse-hint">移动鼠标拨散粒子 · 右键拖动旋转</span>
+          <span class="robot-mouse-hint">移动鼠标拨散粒子 · 左键拖动旋转</span>
           <span class="robot-touch-hint">单指拖动旋转</span>
           <button class="robot-reset" type="button">复位视角</button>
         </figcaption>
@@ -1767,7 +1767,7 @@ ${FENCE}
       if (isHome) {
         banner.className = "robot-home";
         mainContainer.className = "max-w-5xl mx-auto transition-all duration-300";
-        robotHero ??= import("./assets/robot-hero.js")
+        robotHero ??= import("./assets/robot-hero.js?v=2")
           .then(({ mountRobotHero }) => mountRobotHero(document.getElementById("robot-stage")))
           .catch(() => null);
       } else if (mode === "post") {
